@@ -14,12 +14,12 @@ import TopService from "@/components/common/home/top-service";
 import { useAppSelector } from "@/redux/hooks";
 
 export default function Home() {
-  const { user } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   return (
     <>
       <CleaningServiceHome />
-      {user.role == "user" ? (
+      {isAuthenticated && user.role === "customer" ? (
         <div>
           <TopService />
         </div>

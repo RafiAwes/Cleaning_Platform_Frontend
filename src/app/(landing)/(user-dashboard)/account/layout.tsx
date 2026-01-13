@@ -1,6 +1,6 @@
 import SidebarNav from "@/components/common/super-dash/reuse/sideber-nav";
 import { DblogoutIcon } from "@/icon";
-import Link from "next/link";
+import LogoutButton from "./logout-button";
 import { ReactNode } from "react";
 
 interface AccountLayoutProps {
@@ -15,12 +15,7 @@ const AccountLayout = ({ children }: AccountLayoutProps) => {
           <div className="block w-full lg:w-[300px] lg:shrink-0 top-24 h-fit ">
             <SidebarNav items={sidebarNavItems} defaultPath="/account" />
             <div className="px-2">
-              <Link href={"/auth"}>
-                <button className="cursor-pointer flex justify-center items-center gap-2 rounded-[10px] text-red-500 text-[18px] border border-red-500 p-2 mt-4 w-full">
-                  <DblogoutIcon />
-                  Logout
-                </button>
-              </Link>
+              <LogoutButton />
             </div>
           </div>
           <div className="flex-1 border rounded-xl p-4">{children}</div>

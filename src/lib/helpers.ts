@@ -105,4 +105,64 @@ export class helpers {
       return href;
     return href ? `${process.env.NEXT_PUBLIC_IMG_URL}/${href}` : "";
   }
+
+  static isAuthenticated(): boolean {
+    const token = helpers.getAuthCookie(authKey);
+    const storedUserStr = helpers.getStorageItem("auth_user");
+
+    if (!token) {
+      return false;
+    }
+
+    try {
+      const storedUser = storedUserStr ? JSON.parse(storedUserStr) : null;
+      if (storedUser && storedUser.role) {
+        return true;
+      }
+
+      // Try to decode token to see if it has role info
+      try {
+        const decodedToken = helpers.decodeToken(token);
+        return !!(decodedToken && (decodedToken.role || decodedToken.user_role));
+      } catch (decodeError) {
+        return false;
+      }
+    } catch (parseError) {
+      return false;
+    }
+  }
+
+  static getUserRole(): string | null {
+    const token = helpers.getAuthCookie(authKey);
+    const storedUserStr = helpers.getStorageItem("auth_user");
+
+    // First try to get role from localStorage
+    if (storedUserStr) {
+      try {
+        const storedUser = JSON.parse(storedUserStr);
+        if (storedUser && storedUser.role) {
+          return storedUser.role;
+        }
+      } catch (parseError) {
+        console.error('Error parsing stored user:', parseError);
+      }
+    }
+
+    // Fallback to token decoding
+    if (token) {
+      try {
+        const decodedToken = helpers.decodeToken(token);
+        return decodedToken?.role || decodedToken?.user_role || null;
+      } catch (decodeError) {
+        console.error('Error decoding token:', decodeError);
+      }
+    }
+
+    return null;
+  }
+
+  static hasRole(role: string): boolean {
+    const userRole = helpers.getUserRole();
+    return userRole ? userRole.toLowerCase() === role.toLowerCase() : false;
+  }
 }

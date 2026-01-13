@@ -12,14 +12,14 @@ import assets, { loginUser } from "@/assets";
 import { useAppSelector } from "@/redux/hooks";
 
 const Navbar = () => {
-  const { user } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
   const navLinks = [
     { href: "/", text: "Home" },
     { href: "/book-now", text: "Book now" },
-    ...(user?.role === "user" ? [{ href: "/blogs", text: "Blogs" }] : []),
+    ...((user?.role === "customer" || user?.role === "user") ? [{ href: "/blogs", text: "Blogs" }] : []),
     { href: "/works", text: "How it works" },
     { href: "/about-us", text: "About us" },
     { href: "/faq", text: "FAQ" },
@@ -59,11 +59,10 @@ const Navbar = () => {
                 <Link
                   key={link.text}
                   href={link.href}
-                  className={`font-medium transition-colors duration-300 ${
-                    activeLink === link.text
-                      ? "text-primary font-semibold"
-                      : "text-gray-600 hover:text-primary"
-                  }`}
+                  className={`font-medium transition-colors duration-300 ${activeLink === link.text
+                    ? "text-primary font-semibold"
+                    : "text-gray-600 hover:text-primary"
+                    }`}
                 >
                   {link.text}
                 </Link>
@@ -71,7 +70,7 @@ const Navbar = () => {
             </nav>
 
             {/* Desktop Button */}
-            {user.role == "user" ? (
+            {isAuthenticated && (user.role === "customer" || user.role === "admin" || user.role === "vendor") ? (
               <div className="hidden lg:flex items-center gap-4">
                 <Link href={"/chart"}>
                   <IconBox className="rounded-md">
@@ -95,8 +94,8 @@ const Navbar = () => {
                       className="w-[40px] h-[40px] rounded-[6px]"
                     />
                     <div className=" text-black leading-5 mb-1">
-                      <p className="font-semibold">Elizabeth Olson</p>
-                      <p>example@gmail.com</p>
+                      <p className="font-semibold">{user.name || "User"}</p>
+                      <p>{user.email}</p>
                     </div>
                   </div>
                 </Link>
@@ -116,9 +115,8 @@ const Navbar = () => {
               aria-label="Toggle menu"
             >
               <Menu
-                className={`h-6 w-6 transition-transform duration-300 ${
-                  isMenuOpen ? "rotate-90 scale-0" : "rotate-0 scale-100"
-                }`}
+                className={`h-6 w-6 transition-transform duration-300 ${isMenuOpen ? "rotate-90 scale-0" : "rotate-0 scale-100"
+                  }`}
               />
             </button>
           </div>
@@ -127,17 +125,15 @@ const Navbar = () => {
 
       {/* Mobile Overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity lg:hidden ${
-          isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity lg:hidden ${isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         onClick={toggleMenu}
       ></div>
 
       {/* Mobile Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full w-4/5 max-w-sm z-50 bg-secondary transform transition-transform duration-300 ease-in-out lg:hidden ${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 h-full w-4/5 max-w-sm z-50 bg-secondary transform transition-transform duration-300 ease-in-out lg:hidden ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex flex-col h-full">
           {/* Mobile Header */}
@@ -166,11 +162,10 @@ const Navbar = () => {
                   key={link.text}
                   href={link.href}
                   onClick={toggleMenu}
-                  className={`px-3 py-2 text-base font-medium rounded-md transition-colors duration-300 ${
-                    activeLink === link.text
-                      ? "text-primary bg-secondary font-semibold"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                  className={`px-3 py-2 text-base font-medium rounded-md transition-colors duration-300 ${activeLink === link.text
+                    ? "text-primary bg-secondary font-semibold"
+                    : "text-gray-700 hover:bg-gray-100"
+                    }`}
                 >
                   {link.text}
                 </Link>
@@ -180,11 +175,11 @@ const Navbar = () => {
 
           {/* Mobile Button */}
           <div className="p-4   border-t border-gray-200 mt-auto ">
-            {user.role == "user" ? (
+            {isAuthenticated && (user.role === "customer" || user.role === "admin" || user.role === "vendor") ? (
               <div>
                 <div className=" flex flex-col justify-center items-center text-black leading-5 mb-4">
-                  <p className="font-semibold">Elizabeth Olson</p>
-                  <p>example@gmail.com</p>
+                  <p className="font-semibold">{user.name || "User"}</p>
+                  <p>{user.email}</p>
                 </div>
 
                 <div className="flex justify-center items-center gap-4">

@@ -4,19 +4,28 @@ import { useRouter } from "next/navigation";
 import { FieldValues, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FromInput } from "@/components/reusable/form-input";
-import { EmailIcon, GoogleIcon, LockIcon, UserIcon } from "@/icon";
+import {
+  EmailIcon,
+  GoogleIcon,
+  LockIcon,
+  LocationFieldIcon,
+  UserIcon,
+} from "@/icon";
 import Form from "@/components/reusable/from";
 import SubTitle from "@/components/reusable/title";
 import { ArrowRight } from "lucide-react";
 import { register_sc } from "@/lib";
 import Link from "next/link";
+import { useRegisterCustomerMutation } from "@/redux/api/authApi";
 
 export default function Login() {
   const router = useRouter();
+  const [registerCustomer, { isLoading }] = useRegisterCustomerMutation();
   const from = useForm({
     resolver: zodResolver(register_sc),
     defaultValues: {
       name: "",
+      address: "",
       email: "",
       password: "",
       c_password: "",
@@ -24,7 +33,21 @@ export default function Login() {
   });
 
   const handleSubmit = async (values: FieldValues) => {
-    console.log(values);
+    const payload = {
+      name: values.name,
+      email: values.email,
+      address: values.address,
+      password: values.password,
+      password_confirmation: values.c_password,
+      role: "customer",
+    };
+
+    try {
+      await registerCustomer(payload).unwrap();
+      router.push("/auth");
+    } catch (error) {
+      console.error("User registration failed", error);
+    }
   };
   return (
     <div className="w-11/12 lg:max-w-4xl bg-secondary rounded-figma-sm p-5 lg:p-10 my-30 mx-auto">
@@ -35,6 +58,12 @@ export default function Login() {
           name="name"
           placeholder="Your full name"
           icon={<UserIcon />}
+        />
+        <FromInput
+          className="h-11"
+          name="address"
+          placeholder="Your address"
+          icon={<LocationFieldIcon />}
         />
         <FromInput
           className="h-11"
@@ -59,12 +88,14 @@ export default function Login() {
         />
 
         <div>
-          <Link href={"/auth"}>
-            <Button className="w-full" size="lg">
-              {" "}
-              Create account
-            </Button>
-          </Link>
+          <Button
+            type="submit"
+            className="w-full"
+            size="lg"
+            disabled={isLoading}
+          >
+            {isLoading ? "Creating account..." : "Create account"}
+          </Button>
         </div>
       </Form>
 

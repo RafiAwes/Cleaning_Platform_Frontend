@@ -17,8 +17,10 @@ import {
 } from "@/icon";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { register_vendor } from "@/lib";
 import Form from "@/components/reusable/from";
+import { useRegisterVendorMutation } from "@/redux/api/authApi";
 
 const businessCategories = [
   { value: "apartment cleaning", label: "Apartment cleaning" },
@@ -30,6 +32,8 @@ const businessCategories = [
 ];
 
 export default function VendorRegister() {
+  const router = useRouter();
+  const [registerVendor, { isLoading }] = useRegisterVendorMutation();
   const form = useForm({
     resolver: zodResolver(register_vendor),
     defaultValues: {
@@ -43,9 +47,24 @@ export default function VendorRegister() {
     },
   });
 
-  const onSubmit = (values: any) => {
-    console.log("Vendor Registration Data:", values);
-    console.log("Selected business categories:", values.service_categories);
+  const onSubmit = async (values: any) => {
+    const payload = {
+      name: values.name,
+      business_name: values.business_name,
+      service_categories: values.service_categories,
+      address: values.address,
+      email: values.email,
+      password: values.password,
+      password_confirmation: values.c_password,
+      role: "vendor",
+    };
+
+    try {
+      await registerVendor(payload).unwrap();
+      router.push("/auth/submit-documents");
+    } catch (error) {
+      console.error("Vendor registration failed", error);
+    }
   };
 
   return (
@@ -112,11 +131,14 @@ export default function VendorRegister() {
           icon={<LockIcon />}
         />
 
-        <Link href={"/auth/submit-documents"}>
-          <Button type="submit" className="w-full" size="lg">
-            Next
-          </Button>
-        </Link>
+        <Button
+          type="submit"
+          className="w-full"
+          size="lg"
+          disabled={isLoading}
+        >
+          {isLoading ? "Submitting..." : "Next"}
+        </Button>
       </Form>
 
       {/* Social login section */}

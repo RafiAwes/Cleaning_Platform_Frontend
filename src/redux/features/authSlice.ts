@@ -9,10 +9,12 @@ export interface User {
 
 export interface AuthState {
   user: User;
+  isAuthenticated: boolean;
 }
 
 const initialState: AuthState = {
-  user: { name: "", email: "", role: "admin", token: "" },
+  user: { name: "", email: "", role: "", token: "" },
+  isAuthenticated: false,
 };
 
 const authSlice = createSlice({
@@ -21,9 +23,12 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<Partial<User>>) => {
       state.user = { ...state.user, ...action.payload };
+      // Update isAuthenticated based on whether we have both token and role
+      state.isAuthenticated = !!(state.user.token && state.user.token.trim() !== "" && state.user.role && state.user.role.trim() !== "" && state.user.role.toLowerCase() !== "guest");
     },
     clearAuth: (state) => {
       state.user = { name: "", email: "", role: "", token: "" };
+      state.isAuthenticated = false;
     },
   },
 });
