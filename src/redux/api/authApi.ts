@@ -2,6 +2,7 @@ import { tagTypes } from "../tag-types";
 import { baseApi } from "./baseApi";
 
 export const authApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (build) => ({
     registerCustomer: build.mutation({
       query: (data) => ({
@@ -20,7 +21,7 @@ export const authApi = baseApi.injectEndpoints({
     LoginIn: build.mutation({
       query: (data) => {
         return {
-          url: "/auth/login",
+          url: "/login",
           method: "POST",
           data,
         };
@@ -29,14 +30,14 @@ export const authApi = baseApi.injectEndpoints({
     }),
     forgotPassword: build.mutation({
       query: (data) => ({
-        url: "/auth/forgot",
+        url: "/password/email",
         method: "POST",
         data,
       }),
     }),
     otpVarify: build.mutation({
       query: (data) => ({
-        url: "/auth/verify-email",
+        url: "/email/verify",
         method: "POST",
         data,
       }),
@@ -44,7 +45,7 @@ export const authApi = baseApi.injectEndpoints({
     }),
     resetPassword: build.mutation({
       query: (data) => ({
-        url: "/auth/reset-password",
+        url: "/password/reset",
         method: "POST",
         data,
       }),
@@ -72,6 +73,13 @@ export const authApi = baseApi.injectEndpoints({
         data,
       }),
     }),
+    logout: build.mutation<void, void>({
+      query: () => ({
+        url: "/logout",
+        method: "POST",
+      }),
+      invalidatesTags: [tagTypes.profile],
+    }),
   }),
 });
 
@@ -85,4 +93,5 @@ export const {
   useGetProfileQuery,
   useUpdateProfileMutation,
   useUpdatePasswordMutation,
+  useLogoutMutation,
 } = authApi;

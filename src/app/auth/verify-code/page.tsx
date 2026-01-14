@@ -10,11 +10,18 @@ import SubTitle from "@/components/reusable/title";
 import IconBox from "@/components/reusable/Icon-box";
 import { varify_sc } from "@/lib";
 import { Suspense } from "react";
+import { useOtpVarifyMutation } from "@/redux/api/authApi";
+import { helpers } from "@/lib/helpers";
+import { setUser } from "@/redux/features/authSlice";
+import { useAppDispatch } from "@/redux/hooks";
 
 function VarifyCodeChild() {
   const params = useSearchParams();
   const email = params?.get("email");
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const [verifyOtp, { isLoading: isVerifying }] = useOtpVarifyMutation();
+  
   const from = useForm({
     resolver: zodResolver(varify_sc),
     defaultValues: {
@@ -23,8 +30,39 @@ function VarifyCodeChild() {
   });
 
   const handleSubmit = async (values: FieldValues) => {
-    router.push(`/auth/reset-password?email=${email}&otp=${values.code}`);
-    console.log(values);
+    try {
+      // Verify the email and get the token
+      const result = await verifyOtp({
+        email: email,
+        verification_code: values.code
+      }).unwrap();
+      
+      // Store the authentication token received from the backend
+      if (result.access_token) {
+        // Store the token using the proper helper function (uses cookies)
+        helpers.setAuthCookie('auth_token', result.access_token);
+        
+        // Update the Redux store with user information
+        if (result.user) {
+          dispatch(setUser({
+            name: result.user.name,
+            email: result.user.email,
+            role: result.user.role,
+            token: result.access_token
+          }));
+        }
+      }
+      
+      alert(result.message || 'Email verified successfully');
+      router.push("/auth/submit-documents");
+    } catch (error: any) {
+      console.error("Verification failed", error);
+      if (error?.data?.message) {
+        alert(error.data.message);
+      } else {
+        alert("Verification failed. Please check your code and try again.");
+      }
+    }
   };
   return (
     <div className="w-11/12 lg:max-w-4xl bg-secondary rounded-figma-sm py-17 px-4  lg:px-10 my-30 mx-auto">
@@ -40,8 +78,8 @@ function VarifyCodeChild() {
         <FromInput className="h-11" name="code" placeholder="Enter code here" />
 
         <div>
-          <Button className="w-full" size="lg">
-            Verify
+          <Button className="w-full" size="lg" type="submit" disabled={isVerifying}>
+            {isVerifying ? "Processing..." : "Verify"}
           </Button>
         </div>
       </Form>

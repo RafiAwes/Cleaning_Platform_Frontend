@@ -44,22 +44,32 @@ export function AuthInitializer() {
                     token,
                 };
 
-                // Dispatch user data (from token or localStorage)
-                dispatch(setUser(userData));
+                console.log('Restoring auth state from token and localStorage:', userData);
+
+                // Only dispatch if we have at least a role
+                if (userData.role && userData.role.trim() !== "") {
+                    // Dispatch user data (from token or localStorage)
+                    dispatch(setUser(userData));
+                }
             } catch (error) {
                 console.error("Failed to decode token:", error);
 
                 // If token decoding fails, try to get user info from localStorage
                 if (storedUser) {
-                    dispatch(
-                        setUser({
-                            name: storedUser.name || "",
-                            email: storedUser.email || "",
-                            role: storedUser.role || "",
-                            token,
-                        })
-                    );
+                    const userDataFromStorage = {
+                        name: storedUser.name || "",
+                        email: storedUser.email || "",
+                        role: storedUser.role || "",
+                        token,
+                    };
+                    console.log('Restoring auth state from localStorage only:', userDataFromStorage);
+
+                    // Only dispatch if we have at least a role
+                    if (userDataFromStorage.role && userDataFromStorage.role.trim() !== "") {
+                        dispatch(setUser(userDataFromStorage));
+                    }
                 } else {
+                    console.log('Token invalid and no stored user data, removing auth cookie');
                     // If token is invalid and no stored user, remove it
                     helpers.removeAuthCookie(authKey);
                 }
@@ -73,24 +83,32 @@ export function AuthInitializer() {
                     const storedUser = JSON.parse(storedUserStr);
                     if (token && isValidJWT(token)) {
                         // We have both token and stored user, restore both
-                        dispatch(
-                            setUser({
-                                name: storedUser.name || "",
-                                email: storedUser.email || "",
-                                role: storedUser.role || "",
-                                token,
-                            })
-                        );
+                        const userDataWithToken = {
+                            name: storedUser.name || "",
+                            email: storedUser.email || "",
+                            role: storedUser.role || "",
+                            token,
+                        };
+                        console.log('Restoring auth state with token and stored user:', userDataWithToken);
+
+                        // Only dispatch if we have at least a role
+                        if (userDataWithToken.role && userDataWithToken.role.trim() !== "") {
+                            dispatch(setUser(userDataWithToken));
+                        }
                     } else {
                         // We only have stored user data, set user info but keep isAuthenticated false
-                        dispatch(
-                            setUser({
-                                name: storedUser.name || "",
-                                email: storedUser.email || "",
-                                role: storedUser.role || "",
-                                token: "",
-                            })
-                        );
+                        const userDataWithoutToken = {
+                            name: storedUser.name || "",
+                            email: storedUser.email || "",
+                            role: storedUser.role || "",
+                            token: "",
+                        };
+                        console.log('Restoring auth state from localStorage only (no token):', userDataWithoutToken);
+
+                        // Only dispatch if we have at least a role
+                        if (userDataWithoutToken.role && userDataWithoutToken.role.trim() !== "") {
+                            dispatch(setUser(userDataWithoutToken));
+                        }
                     }
                 } catch (error) {
                     console.error("Failed to restore user from storage:", error);

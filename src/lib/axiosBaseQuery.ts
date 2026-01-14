@@ -38,7 +38,7 @@ const axiosBaseQuery =
         params,
         onUploadProgress,
         headers: {
-          "Content-Type": ContentType || "application/json",
+          ...(ContentType && { "Content-Type": ContentType }),
           Authorization: `Bearer ${token}`,
           ...headers,
         },

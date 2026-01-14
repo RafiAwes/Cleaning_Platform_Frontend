@@ -19,17 +19,11 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { book_uc, register_vendor } from "@/lib";
 import Form from "@/components/reusable/from";
-
-const businessCategories = [
-  { value: "apartment cleaning", label: "Apartment cleaning" },
-  { value: "deep cleaning", label: "Deep Cleaning" },
-  { value: "air bnb", label: "Air BNB" },
-  { value: "move in/move out cleaning", label: "Move In/Move Out cleaning" },
-  { value: "move in/move out cleaninge", label: "Move In/Move Out cleaninge" },
-  { value: "move in/move out cleanings", label: "Move In/Move Out cleanings" },
-];
+import { useGetCategoriesQuery } from "@/redux/api/categoryApi";
 
 const BookNowPage = () => {
+  const { data: categoriesData, isLoading: isCategoriesLoading } = useGetCategoriesQuery(undefined);
+  
   const form = useForm({
     resolver: zodResolver(book_uc),
     defaultValues: {
@@ -37,8 +31,14 @@ const BookNowPage = () => {
     },
   });
 
+  // Convert categories to options format when data is loaded
+  const businessCategories = categoriesData?.data?.map((category: any) => ({
+    value: category.id.toString(),
+    label: category.name
+  })) || [];
+
   const onSubmit = (values: any) => {
-    console.log("Vendor Registration Data:", values);
+    console.log("Service booking Data:", values);
     console.log("Selected business categories:", values.service_categories);
   };
 
@@ -56,8 +56,8 @@ const BookNowPage = () => {
               <FormSelect
                 control={form.control}
                 name="service_categories"
-                placeholder="-select-"
-                options={businessCategories}
+                placeholder={isCategoriesLoading ? "Loading..." : "-select-"}
+                options={isCategoriesLoading ? [] : businessCategories}
                 multiple={true}
                 className="h-11"
               />

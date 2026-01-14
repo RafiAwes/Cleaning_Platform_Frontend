@@ -36,65 +36,111 @@ export default function Login() {
       const res: any = await login(values).unwrap();
 
       // Handle various possible API response formats
+      console.log('Raw API response:', res);
+
       let token = res?.token || res?.access_token || res?.data?.token || res?.data?.access_token;
       let user = res?.user || res?.data?.user || {};
 
-      // If user is still empty, check if user data is directly in the response
-      if (!user.name && !user.email && !user.role && res && typeof res === 'object') {
-        // Try to extract user data from top-level properties
+      // If user object is still empty, try to get user data from different possible locations
+      if ((!user || Object.keys(user).length === 0) && res?.user) {
+        user = res.user;
+      } else if ((!user || Object.keys(user).length === 0) && res?.data?.user) {
+        user = res.data.user;
+      } else if ((!user || Object.keys(user).length === 0) && res?.data) {
+        // Extract user-like properties from data
+        user = {
+          name: res.data.name || res.data.full_name || res.data.first_name,
+          email: res.data.email,
+          role: res.data.role || res.data.user_role || res.data.userType,
+        };
+      }
+
+      // If user is still empty, try to extract from the top-level response
+      if ((!user || Object.keys(user).length <= 1) && res && typeof res === 'object' && !token) {
+        // This means the whole response might be the user object
         user = {
           name: res.name || res.full_name || res.first_name,
           email: res.email,
           role: res.role || res.user_role || res.userType,
         };
+        // Also check for token in the same object
+        if (!token) {
+          token = res.token || res.access_token;
+        }
       }
+
+      console.log('Processed user data before storage:', { name: user.name, email: user.email, role: user.role, hasToken: !!token });
 
       if (token) {
         helpers.setAuthCookie(authKey, token);
         // Also store user info in localStorage as backup
         helpers.setStorageItem("auth_user", JSON.stringify({
-          name: user.name,
-          email: user.email,
-          role: user.role,
+          name: user.name || '',
+          email: user.email || '',
+          role: user.role || '',
         }));
+      } else {
+        console.warn('Login succeeded but no token received');
       }
 
       const userData = {
-        name: user.name,
-        email: user.email,
-        role: user.role,
+        name: user.name || '',
+        email: user.email || '',
+        role: user.role || '',
         token,
       };
 
+      console.log('Login API response:', res);
+      console.log('Extracted user data:', userData);
+
       dispatch(setUser(userData));
 
-      // Normalize role to lowercase for comparison
-      const normalizedRole = (user.role || '').toLowerCase();
+      // Ensure we have the role in the user data before redirecting
+      const currentUserRole = userData.role;
+      const normalizedRole = (currentUserRole || '').toLowerCase().trim();
+
+      console.log('Normalized role for redirect:', normalizedRole);
 
       // Redirect based on user role
       if (normalizedRole === "admin") {
         router.push("/admin");
       } else if (normalizedRole === "vendor") {
         router.push("/vendor");
-      } else {
+      } else if (normalizedRole === "customer" || normalizedRole === "user") {
         // For customer or any other user role, redirect to home
+        router.push("/");
+      } else {
+        // If role is still not recognized, default to home
         router.push("/");
       }
     } catch (error: unknown) {
       const apiError = error as any;
       const errorData = apiError?.data;
+      const errorStatus = apiError?.status;
 
-      console.error("Login error status:", apiError?.status);
+      console.error("Login error status:", errorStatus);
       console.error("Login error data:", errorData);
+      console.error("Full error object:", apiError);
 
       // Prefer server validation messages when available
       ResponseApiErrors(errorData, from);
 
-      const message =
-        errorData?.message ||
-        errorData?.error ||
-        errorData?.msg ||
-        "Login failed. Please check your credentials and try again.";
+      // More specific error messages based on status
+      let message = "Login failed. Please check your credentials and try again.";
+
+      if (errorStatus === 401) {
+        message = "Invalid credentials. Please check your email and password.";
+      } else if (errorStatus === 404) {
+        message = "Login endpoint not found. Please contact support.";
+      } else if (errorStatus === 500) {
+        message = "Server error occurred. Please try again later.";
+      } else if (errorData?.message) {
+        message = errorData.message;
+      } else if (errorData?.error) {
+        message = errorData.error;
+      } else if (errorData?.msg) {
+        message = errorData.msg;
+      }
 
       console.error("Login failed with message:", message);
       alert(message);

@@ -6,11 +6,12 @@ import PictureUploader from "@/components/reusable/PictureUploader";
 import SubTitle from "@/components/reusable/title";
 import { Button } from "@/components/ui";
 import { DownloadVendorDocIcon, SubmitDocIcon } from "@/icon";
-import { varify_sc } from "@/lib";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
+import { useUploadDocumentsMutation } from "@/redux/api/documentApi";
 
 interface UploadedFile {
   file: File | null;
@@ -28,18 +29,41 @@ const SubmitDocuments = () => {
     previewUrl: null,
   });
 
+  const router = useRouter();
+  const [uploadDocuments, { isLoading }] = useUploadDocumentsMutation();
+
   const from = useForm({
-    resolver: zodResolver(varify_sc),
-    defaultValues: {
-      code: "",
-    },
+    defaultValues: {},
   });
 
   const handleSubmit = async (values: FieldValues) => {
-    console.log(values);
+    if (!nationalId.file || !businessProof.file) {
+      alert("Please upload both National ID and Business Proof documents");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('nid', nationalId.file);
+    formData.append('pob', businessProof.file);
+
+    try {
+      const result = await uploadDocuments(formData).unwrap();
+      console.log("Document upload successful", result);
+      // Navigate to a confirmation page after successful upload
+      router.push("/auth"); // Or wherever you want to redirect after document submission
+    } catch (error: any) {
+      console.error("Document upload failed", error);
+      console.error("Full error details:", error);
+      if (error?.data?.message) {
+        alert("Upload failed: " + error.data.message);
+      } else if (error?.status) {
+        alert(`Upload failed with status: ${error.status}`);
+      } else {
+        alert("Document upload failed. Please try again. Error: " + JSON.stringify(error));
+      }
+    }
   };
 
-  console.log(nationalId.file);
   return (
     <div className="w-11/12 lg:max-w-4xl bg-secondary rounded-figma-sm py-10 px-4  lg:px-10 my-30 mx-auto">
       <IconBox className="lg:size-14 mb-4">
@@ -84,11 +108,14 @@ const SubmitDocuments = () => {
         </div>
 
         <div>
-          <Link href={"/auth/verify-code"}>
-            <Button className="w-full" size="lg">
-              Next
-            </Button>
-          </Link>
+          <Button 
+            className="w-full" 
+            size="lg" 
+            type="submit"
+            disabled={isLoading || !nationalId.file || !businessProof.file}
+          >
+            {isLoading ? "Uploading..." : "Submit Documents"}
+          </Button>
         </div>
       </Form>
     </div>

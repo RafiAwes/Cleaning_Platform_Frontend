@@ -17,7 +17,7 @@ import { ArrowRight } from "lucide-react";
 import { register_sc } from "@/lib";
 import Link from "next/link";
 import { useRegisterCustomerMutation } from "@/redux/api/authApi";
-
+ 
 export default function Login() {
   const router = useRouter();
   const [registerCustomer, { isLoading }] = useRegisterCustomerMutation();

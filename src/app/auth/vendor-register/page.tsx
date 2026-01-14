@@ -21,19 +21,14 @@ import { useRouter } from "next/navigation";
 import { register_vendor } from "@/lib";
 import Form from "@/components/reusable/from";
 import { useRegisterVendorMutation } from "@/redux/api/authApi";
-
-const businessCategories = [
-  { value: "apartment cleaning", label: "Apartment cleaning" },
-  { value: "deep cleaning", label: "Deep Cleaning" },
-  { value: "air bnb", label: "Air BNB" },
-  { value: "move in/move out cleaning", label: "Move In/Move Out cleaning" },
-  { value: "move in/move out cleaninge", label: "Move In/Move Out cleaninge" },
-  { value: "move in/move out cleanings", label: "Move In/Move Out cleanings" },
-];
+import { useGetCategoriesQuery } from "@/redux/api/categoryApi";
+import { useEffect } from "react";
 
 export default function VendorRegister() {
   const router = useRouter();
   const [registerVendor, { isLoading }] = useRegisterVendorMutation();
+  const { data: categoriesData, isLoading: isCategoriesLoading } = useGetCategoriesQuery(undefined);
+  
   const form = useForm({
     resolver: zodResolver(register_vendor),
     defaultValues: {
@@ -47,11 +42,17 @@ export default function VendorRegister() {
     },
   });
 
+  // Convert categories to options format when data is loaded
+  const businessCategories = categoriesData?.data?.map((category: any) => ({
+    value: category.id.toString(),
+    label: category.name
+  })) || [];
+
   const onSubmit = async (values: any) => {
     const payload = {
       name: values.name,
       business_name: values.business_name,
-      service_categories: values.service_categories,
+      service_categories: values.service_categories, // This will now be an array of category IDs
       address: values.address,
       email: values.email,
       password: values.password,
@@ -60,10 +61,19 @@ export default function VendorRegister() {
     };
 
     try {
+      console.log("Sending payload:", payload); // Debug log
       await registerVendor(payload).unwrap();
-      router.push("/auth/submit-documents");
-    } catch (error) {
+      router.push(`/auth/verify-code?email=${payload.email}`);
+    } catch (error: any) {
       console.error("Vendor registration failed", error);
+      // Display a more informative error message
+      if (error?.data?.message) {
+        alert(error.data.message);
+      } else if (error?.status) {
+        alert(`Registration failed with status: ${error.status}`);
+      } else {
+        alert("Registration failed. Please check your inputs and try again.");
+      }
     }
   };
 
@@ -92,8 +102,8 @@ export default function VendorRegister() {
             name="service_categories"
             icon={<BusinessIcon />}
             iconSize={24}
-            placeholder="-select your service-"
-            options={businessCategories}
+            placeholder={isCategoriesLoading ? "Loading..." : "-select your service-"}
+            options={isCategoriesLoading ? [] : businessCategories}
             multiple={true}
             className="h-11"
           />
@@ -135,7 +145,7 @@ export default function VendorRegister() {
           type="submit"
           className="w-full"
           size="lg"
-          disabled={isLoading}
+          disabled={isLoading || isCategoriesLoading}
         >
           {isLoading ? "Submitting..." : "Next"}
         </Button>
