@@ -1,11 +1,11 @@
 const SearchBox2 = () => {
   return (
     <div>
-      <div className="px-4 ">
+      <div className="lg:w-3xl">
         <div className="h-11 flex items-center bg-white  rounded-lg overflow-hidden">
           <input
             type="text"
-            placeholder="Search by vendor name or service title"
+            placeholder="Search by service name"
             className="w-full px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none"
           />
 

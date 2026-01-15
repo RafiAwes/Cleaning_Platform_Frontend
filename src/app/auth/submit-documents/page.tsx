@@ -6,12 +6,14 @@ import PictureUploader from "@/components/reusable/PictureUploader";
 import SubTitle from "@/components/reusable/title";
 import { Button } from "@/components/ui";
 import { DownloadVendorDocIcon, SubmitDocIcon } from "@/icon";
-import { zodResolver } from "@hookform/resolvers/zod";
+
+
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
-import { useUploadDocumentsMutation } from "@/redux/api/documentApi";
+import { useUploadBusinessDocumentsMutation } from "@/redux/api/authApi";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface UploadedFile {
   file: File | null;
@@ -29,41 +31,76 @@ const SubmitDocuments = () => {
     previewUrl: null,
   });
 
-  const router = useRouter();
-  const [uploadDocuments, { isLoading }] = useUploadDocumentsMutation();
-
   const from = useForm({
+    // No resolver needed since we're just uploading files
     defaultValues: {},
   });
 
+  const router = useRouter();
+  const [uploadDocuments, { isLoading }] = useUploadBusinessDocumentsMutation();
+
   const handleSubmit = async (values: FieldValues) => {
-    if (!nationalId.file || !businessProof.file) {
-      alert("Please upload both National ID and Business Proof documents");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('nid', nationalId.file);
-    formData.append('pob', businessProof.file);
-
     try {
-      const result = await uploadDocuments(formData).unwrap();
-      console.log("Document upload successful", result);
-      // Navigate to a confirmation page after successful upload
-      router.push("/auth"); // Or wherever you want to redirect after document submission
-    } catch (error: any) {
-      console.error("Document upload failed", error);
-      console.error("Full error details:", error);
-      if (error?.data?.message) {
-        alert("Upload failed: " + error.data.message);
-      } else if (error?.status) {
-        alert(`Upload failed with status: ${error.status}`);
-      } else {
-        alert("Document upload failed. Please try again. Error: " + JSON.stringify(error));
+      // Validate that both files are uploaded
+      if (!nationalId.file || !businessProof.file) {
+        toast.error("Please upload both National ID and Business Proof documents");
+        return;
       }
+      
+      // Debug: Log file information
+      console.log('NID file:', {
+        name: nationalId.file?.name,
+        size: nationalId.file?.size,
+        type: nationalId.file?.type
+      });
+      console.log('Business Proof file:', {
+        name: businessProof.file?.name,
+        size: businessProof.file?.size,
+        type: businessProof.file?.type
+      });
+      
+      // Create FormData to send files
+      const formData = new FormData();
+      formData.append('nid', nationalId.file);
+      formData.append('pob', businessProof.file);
+      
+      // Debug: Log FormData entries
+      console.log('FormData contents:', [...formData.entries()]);
+      
+      // Upload documents to backend
+      const res = await uploadDocuments(formData).unwrap();
+      
+      toast.success(res.message || "Documents uploaded successfully!");
+      
+      // Redirect to vendor dashboard after successful upload
+      // Since we have the document check in place, this will now redirect properly
+      router.push('/vendor');
+    } catch (err: any) {
+      console.error("Document upload error:", err);
+      // Log more details about the error
+      console.error("Error details:", {
+        message: err?.message,
+        data: err?.data,
+        status: err?.status,
+        error: err?.error,
+        raw_error: err
+      });
+      
+      let errorMessage = "Failed to upload documents";
+      if (err?.data?.message) {
+        errorMessage = err.data.message;
+      } else if (err?.error) {
+        errorMessage = err.error;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      toast.error(errorMessage || "An unknown error occurred during document upload");
     }
   };
 
+  // Remove debug log
+  // console.log(nationalId.file);
   return (
     <div className="w-11/12 lg:max-w-4xl bg-secondary rounded-figma-sm py-10 px-4  lg:px-10 my-30 mx-auto">
       <IconBox className="lg:size-14 mb-4">
@@ -73,7 +110,7 @@ const SubmitDocuments = () => {
       <p className="text-figma-secondary text-center max-w-xl mx-auto mt-2">
         {`Submit the required documents. National ID, proof of business, your photo etc.`}
       </p>
-      <Form className="space-y-4 pt-8" from={from} onSubmit={handleSubmit}>
+      <form onSubmit={from.handleSubmit(handleSubmit)} className="space-y-4 pt-8">
         <div className="flex flex-col md:flex-row items-center gap-3">
           <PictureUploader
             file={nationalId.file}
@@ -108,16 +145,11 @@ const SubmitDocuments = () => {
         </div>
 
         <div>
-          <Button 
-            className="w-full" 
-            size="lg" 
-            type="submit"
-            disabled={isLoading || !nationalId.file || !businessProof.file}
-          >
+          <Button className="w-full" size="lg" type="submit" disabled={isLoading}>
             {isLoading ? "Uploading..." : "Submit Documents"}
           </Button>
         </div>
-      </Form>
+      </form>
     </div>
   );
 };

@@ -146,10 +146,10 @@ export default function VendorDetails() {
         <div className="col-span-2">
           <div className="flex items-center flex-wrap space-x-5 border-b-px mb-6">
             {manageTabs.map((item, index) => {
-              const tRafi = item.id;
+              const tabId = item.id;
               return (
                 <div
-                  onClick={() => setIsTab(tRafi)}
+                  onClick={() => setIsTab(tabId)}
                   key={index}
                   className="cursor-pointer font-medium text-lg"
                 >
@@ -159,7 +159,7 @@ export default function VendorDetails() {
                   </span>
                   <div
                     className={`w-full h-1 rounded-t-md ${
-                      isTab === tRafi ? "bg-primary" : "bg-transparent"
+                      isTab === tabId ? "bg-primary" : "bg-transparent"
                     }`}
                   ></div>
                 </div>

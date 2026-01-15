@@ -1,10 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface User {
+  id?: number;
   name: string;
   email: string;
   role: string;
   token?: string;
+  email_verified_at?: string | null;
 }
 
 export interface AuthState {
@@ -13,7 +15,7 @@ export interface AuthState {
 }
 
 const initialState: AuthState = {
-  user: { name: "", email: "", role: "", token: "" },
+  user: { name: "", email: "", role: "", token: "", email_verified_at: null },
   isAuthenticated: false,
 };
 
@@ -23,11 +25,10 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<Partial<User>>) => {
       state.user = { ...state.user, ...action.payload };
-      // Update isAuthenticated based on whether we have both token and role
-      state.isAuthenticated = !!(state.user.token && state.user.token.trim() !== "" && state.user.role && state.user.role.trim() !== "" && state.user.role.toLowerCase() !== "guest");
+      state.isAuthenticated = true;
     },
     clearAuth: (state) => {
-      state.user = { name: "", email: "", role: "", token: "" };
+      state.user = { name: "", email: "", role: "", token: "", email_verified_at: null };
       state.isAuthenticated = false;
     },
   },

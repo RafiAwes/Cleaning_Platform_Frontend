@@ -4,7 +4,7 @@ import Image from "next/image";
 function Works() {
   return (
     <div className="pt-[48px] xl:pt-[148px] mb-20">
-      <div className="container px-4">
+      <div className=" px-4">
         <div className="pb-8">
           <SubTitle text="How it works" />
         </div>

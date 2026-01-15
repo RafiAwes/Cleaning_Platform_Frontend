@@ -4,10 +4,10 @@ import { useAppDispatch } from "@/redux/hooks";
 import { clearAuth } from "@/redux/features/authSlice";
 import { helpers } from "@/lib/helpers";
 import { authKey } from "@/lib/constants";
-import { DblogoutIcon } from "@/icon";
 import { useLogoutMutation } from "@/redux/api/authApi";
+import { toast } from "sonner";
 
-export default function LogoutButton() {
+export default function VendorLogoutButton() {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const [logout, { isLoading }] = useLogoutMutation();
@@ -37,6 +37,7 @@ export default function LogoutButton() {
     return (
         <button
             onClick={handleLogout}
+            disabled={isLoading}
             className="cursor-pointer flex justify-center items-center gap-2 rounded-[10px] text-red-500 text-[18px] border border-red-500 p-2 mt-4 w-full"
         >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -44,7 +45,7 @@ export default function LogoutButton() {
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" x2="9" y1="12" y2="12" />
             </svg>
-            Logout
+            {isLoading ? 'Logging out...' : 'Logout'}
         </button>
     );
 }

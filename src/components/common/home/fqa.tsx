@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react';
-import Head from 'next/head';
-import SubTitle from '@/components/reusable/title';
-import { FaqIcon } from '@/icon';
+import React, { useState } from "react";
+import Head from "next/head";
+import SubTitle from "@/components/reusable/title";
+import { FaqIcon } from "@/icon";
 
 const FQA = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -11,25 +11,24 @@ const FQA = () => {
   const faqList = [
     {
       q: "Question goes here?",
-      a: "Lorem ipsum dolor sit amet consectetur. At netus viverra quis nisl a varius mauris. Mi pulvinar arcu eget id velit adipiscing. Tristique nibh eget interdum orci pharetra mauris imperdiet tortor neque. Elit rutrum scelerisque ac morbi id. Viverra dolor adipiscing sollicitudin nulla nunc ac dignissim. Ultrices pellentesque sed eu cursus. Turpis amet id egestas nunc. Duis dictum cursus id nulla congue est. Lectus sed senectus feugiat quis lectus velit vitae tempus vitae. Nisl consequat egestas sit adipiscing. Felis vulputate ultrices lacus turpis massa semper. Ac dolor vel pretium urna. Diam dui arcu libero diam semper massa. Tortor vestibulum ultricies gravida et nisi tincidunt sit. A mollis lorem nisi sit duis. Risus auctor a amet enim parturient. Vulputate suspendisse pharetra commodo et elementum accumsan. Risus volutpat nulla sit euismod non. Nisl sed velit aliquam ut nunc."
+      a: "Lorem ipsum dolor sit amet consectetur. At netus viverra quis nisl a varius mauris. Mi pulvinar arcu eget id velit adipiscing. Tristique nibh eget interdum orci pharetra mauris imperdiet tortor neque. Elit rutrum scelerisque ac morbi id. Viverra dolor adipiscing sollicitudin nulla nunc ac dignissim. Ultrices pellentesque sed eu cursus. Turpis amet id egestas nunc. Duis dictum cursus id nulla congue est. Lectus sed senectus feugiat quis lectus velit vitae tempus vitae. Nisl consequat egestas sit adipiscing. Felis vulputate ultrices lacus turpis massa semper. Ac dolor vel pretium urna. Diam dui arcu libero diam semper massa. Tortor vestibulum ultricies gravida et nisi tincidunt sit. A mollis lorem nisi sit duis. Risus auctor a amet enim parturient. Vulputate suspendisse pharetra commodo et elementum accumsan. Risus volutpat nulla sit euismod non. Nisl sed velit aliquam ut nunc.",
     },
     {
       q: "Question goes here?",
-      a: "Lorem ipsum dolor sit amet consectetur. At netus viverra quis nisl a varius mauris. Mi pulvinar arcu eget id velit adipiscing. Tristique nibh eget interdum orci pharetra mauris imperdiet tortor neque. Elit rutrum scelerisque ac morbi id. Viverra dolor adipiscing sollicitudin nulla nunc ac dignissim. Ultrices pellentesque sed eu cursus. Turpis amet id egestas nunc. Duis dictum cursus id nulla congue est. Lectus sed senectus feugiat quis lectus velit vitae tempus vitae. Nisl consequat egestas sit adipiscing. Felis vulputate ultrices lacus turpis massa semper. Ac dolor vel pretium urna. Diam dui arcu libero diam semper massa. Tortor vestibulum ultricies gravida et nisi tincidunt sit. A mollis lorem nisi sit duis. Risus auctor a amet enim parturient. Vulputate suspendisse pharetra commodo et elementum accumsan. Risus volutpat nulla sit euismod non. Nisl sed velit aliquam ut nunc."
+      a: "Lorem ipsum dolor sit amet consectetur. At netus viverra quis nisl a varius mauris. Mi pulvinar arcu eget id velit adipiscing. Tristique nibh eget interdum orci pharetra mauris imperdiet tortor neque. Elit rutrum scelerisque ac morbi id. Viverra dolor adipiscing sollicitudin nulla nunc ac dignissim. Ultrices pellentesque sed eu cursus. Turpis amet id egestas nunc. Duis dictum cursus id nulla congue est. Lectus sed senectus feugiat quis lectus velit vitae tempus vitae. Nisl consequat egestas sit adipiscing. Felis vulputate ultrices lacus turpis massa semper. Ac dolor vel pretium urna. Diam dui arcu libero diam semper massa. Tortor vestibulum ultricies gravida et nisi tincidunt sit. A mollis lorem nisi sit duis. Risus auctor a amet enim parturient. Vulputate suspendisse pharetra commodo et elementum accumsan. Risus volutpat nulla sit euismod non. Nisl sed velit aliquam ut nunc.",
     },
     {
       q: "Question goes here?",
-      a: "Lorem ipsum dolor sit amet consectetur. At netus viverra quis nisl a varius mauris. Mi pulvinar arcu eget id velit adipiscing. Tristique nibh eget interdum orci pharetra mauris imperdiet tortor neque. Elit rutrum scelerisque ac morbi id. Viverra dolor adipiscing sollicitudin nulla nunc ac dignissim. Ultrices pellentesque sed eu cursus. Turpis amet id egestas nunc. Duis dictum cursus id nulla congue est. Lectus sed senectus feugiat quis lectus velit vitae tempus vitae. Nisl consequat egestas sit adipiscing. Felis vulputate ultrices lacus turpis massa semper. Ac dolor vel pretium urna. Diam dui arcu libero diam semper massa. Tortor vestibulum ultricies gravida et nisi tincidunt sit. A mollis lorem nisi sit duis. Risus auctor a amet enim parturient. Vulputate suspendisse pharetra commodo et elementum accumsan. Risus volutpat nulla sit euismod non. Nisl sed velit aliquam ut nunc."
+      a: "Lorem ipsum dolor sit amet consectetur. At netus viverra quis nisl a varius mauris. Mi pulvinar arcu eget id velit adipiscing. Tristique nibh eget interdum orci pharetra mauris imperdiet tortor neque. Elit rutrum scelerisque ac morbi id. Viverra dolor adipiscing sollicitudin nulla nunc ac dignissim. Ultrices pellentesque sed eu cursus. Turpis amet id egestas nunc. Duis dictum cursus id nulla congue est. Lectus sed senectus feugiat quis lectus velit vitae tempus vitae. Nisl consequat egestas sit adipiscing. Felis vulputate ultrices lacus turpis massa semper. Ac dolor vel pretium urna. Diam dui arcu libero diam semper massa. Tortor vestibulum ultricies gravida et nisi tincidunt sit. A mollis lorem nisi sit duis. Risus auctor a amet enim parturient. Vulputate suspendisse pharetra commodo et elementum accumsan. Risus volutpat nulla sit euismod non. Nisl sed velit aliquam ut nunc.",
     },
     {
       q: "Question goes here?",
-      a: "Lorem ipsum dolor sit amet consectetur. At netus viverra quis nisl a varius mauris. Mi pulvinar arcu eget id velit adipiscing. Tristique nibh eget interdum orci pharetra mauris imperdiet tortor neque. Elit rutrum scelerisque ac morbi id. Viverra dolor adipiscing sollicitudin nulla nunc ac dignissim. Ultrices pellentesque sed eu cursus. Turpis amet id egestas nunc. Duis dictum cursus id nulla congue est. Lectus sed senectus feugiat quis lectus velit vitae tempus vitae. Nisl consequat egestas sit adipiscing. Felis vulputate ultrices lacus turpis massa semper. Ac dolor vel pretium urna. Diam dui arcu libero diam semper massa. Tortor vestibulum ultricies gravida et nisi tincidunt sit. A mollis lorem nisi sit duis. Risus auctor a amet enim parturient. Vulputate suspendisse pharetra commodo et elementum accumsan. Risus volutpat nulla sit euismod non. Nisl sed velit aliquam ut nunc."
+      a: "Lorem ipsum dolor sit amet consectetur. At netus viverra quis nisl a varius mauris. Mi pulvinar arcu eget id velit adipiscing. Tristique nibh eget interdum orci pharetra mauris imperdiet tortor neque. Elit rutrum scelerisque ac morbi id. Viverra dolor adipiscing sollicitudin nulla nunc ac dignissim. Ultrices pellentesque sed eu cursus. Turpis amet id egestas nunc. Duis dictum cursus id nulla congue est. Lectus sed senectus feugiat quis lectus velit vitae tempus vitae. Nisl consequat egestas sit adipiscing. Felis vulputate ultrices lacus turpis massa semper. Ac dolor vel pretium urna. Diam dui arcu libero diam semper massa. Tortor vestibulum ultricies gravida et nisi tincidunt sit. A mollis lorem nisi sit duis. Risus auctor a amet enim parturient. Vulputate suspendisse pharetra commodo et elementum accumsan. Risus volutpat nulla sit euismod non. Nisl sed velit aliquam ut nunc.",
     },
     {
       q: "Question goes here?",
-      a: "Lorem ipsum dolor sit amet consectetur. At netus viverra quis nisl a varius mauris. Mi pulvinar arcu eget id velit adipiscing. Tristique nibh eget interdum orci pharetra mauris imperdiet tortor neque. Elit rutrum scelerisque ac morbi id. Viverra dolor adipiscing sollicitudin nulla nunc ac dignissim. Ultrices pellentesque sed eu cursus. Turpis amet id egestas nunc. Duis dictum cursus id nulla congue est. Lectus sed senectus feugiat quis lectus velit vitae tempus vitae. Nisl consequat egestas sit adipiscing. Felis vulputate ultrices lacus turpis massa semper. Ac dolor vel pretium urna. Diam dui arcu libero diam semper massa. Tortor vestibulum ultricies gravida et nisi tincidunt sit. A mollis lorem nisi sit duis. Risus auctor a amet enim parturient. Vulputate suspendisse pharetra commodo et elementum accumsan. Risus volutpat nulla sit euismod non. Nisl sed velit aliquam ut nunc."
+      a: "Lorem ipsum dolor sit amet consectetur. At netus viverra quis nisl a varius mauris. Mi pulvinar arcu eget id velit adipiscing. Tristique nibh eget interdum orci pharetra mauris imperdiet tortor neque. Elit rutrum scelerisque ac morbi id. Viverra dolor adipiscing sollicitudin nulla nunc ac dignissim. Ultrices pellentesque sed eu cursus. Turpis amet id egestas nunc. Duis dictum cursus id nulla congue est. Lectus sed senectus feugiat quis lectus velit vitae tempus vitae. Nisl consequat egestas sit adipiscing. Felis vulputate ultrices lacus turpis massa semper. Ac dolor vel pretium urna. Diam dui arcu libero diam semper massa. Tortor vestibulum ultricies gravida et nisi tincidunt sit. A mollis lorem nisi sit duis. Risus auctor a amet enim parturient. Vulputate suspendisse pharetra commodo et elementum accumsan. Risus volutpat nulla sit euismod non. Nisl sed velit aliquam ut nunc.",
     },
-
   ];
 
   const toggleItem = (index: number) => {
@@ -37,10 +36,10 @@ const FQA = () => {
   };
 
   return (
-    <section className="pt-[48px] xl:pt-[148px]">
-      <div className='container px-4'>
+    <section className="pt-[48px] xl:pt-[100px]">
+      <div className="container px-4">
         <div className="pb-8">
-          <SubTitle text='Frequently Asked Questions (FAQ)' svg={<FaqIcon />} />
+          <SubTitle text="Frequently Asked Questions (FAQ)" svg={<FaqIcon />} />
         </div>
 
         <div className="bg-white">
@@ -60,7 +59,7 @@ const FQA = () => {
                         {item.q}
                       </span>
                       <span className="text-xl font-bold text-gray-500 cursor-pointer">
-                        {activeIndex === index ? '−' : '+'}
+                        {activeIndex === index ? "−" : "+"}
                       </span>
                     </button>
 

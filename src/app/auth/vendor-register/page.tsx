@@ -17,17 +17,22 @@ import {
 } from "@/icon";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { register_vendor } from "@/lib";
 import Form from "@/components/reusable/from";
-import { useRegisterVendorMutation } from "@/redux/api/authApi";
+import { useRegisterMutation } from "@/redux/api/authApi";
 import { useGetCategoriesQuery } from "@/redux/api/categoryApi";
-import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function VendorRegister() {
   const router = useRouter();
-  const [registerVendor, { isLoading }] = useRegisterVendorMutation();
-  const { data: categoriesData, isLoading: isCategoriesLoading } = useGetCategoriesQuery(undefined);
+  const [registerUser, { isLoading }] = useRegisterMutation();
+  const { data: categoriesData, isLoading: categoriesLoading, isError, error } = useGetCategoriesQuery(undefined);
+  
+  // Log any errors
+  if (isError) {
+    console.error("Error loading categories:", error);
+  }
   
   const form = useForm({
     resolver: zodResolver(register_vendor),
@@ -42,38 +47,57 @@ export default function VendorRegister() {
     },
   });
 
-  // Convert categories to options format when data is loaded
-  const businessCategories = categoriesData?.data?.map((category: any) => ({
-    value: category.id.toString(),
-    label: category.name
-  })) || [];
+  // Transform categories data for the select component
+  const businessCategories = categoriesData?.data && Array.isArray(categoriesData.data) 
+    ? categoriesData.data.map((category: any) => ({
+        value: category.id?.toString() || "",
+        label: category.name || ""
+      })) 
+    : [];
+  
+  // Log for debugging
+  if (categoriesLoading) {
+    console.log("Loading categories...");
+  } else if (categoriesData) {
+    console.log("Categories loaded:", categoriesData);
+    console.log("Transformed categories:", businessCategories);
+  } else {
+    console.log("No categories data available");
+  }
 
   const onSubmit = async (values: any) => {
-    const payload = {
-      name: values.name,
-      business_name: values.business_name,
-      service_categories: values.service_categories, // This will now be an array of category IDs
-      address: values.address,
-      email: values.email,
-      password: values.password,
-      password_confirmation: values.c_password,
-      role: "vendor",
-    };
-
     try {
-      console.log("Sending payload:", payload); // Debug log
-      await registerVendor(payload).unwrap();
-      router.push(`/auth/verify-code?email=${payload.email}`);
-    } catch (error: any) {
-      console.error("Vendor registration failed", error);
-      // Display a more informative error message
-      if (error?.data?.message) {
-        alert(error.data.message);
-      } else if (error?.status) {
-        alert(`Registration failed with status: ${error.status}`);
+      const userData = {
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        password_confirmation: values.c_password,
+        role: "vendor",
+        business_name: values.business_name,
+        address: values.address,
+        service_categories: values.service_categories.map((cat: string) => parseInt(cat))
+      };
+
+      const res = await registerUser(userData).unwrap();
+      
+      // Check if it's a vendor registration (has 'user' object) or customer registration (has 'user_id')
+      const userId = res.user?.id || res.user_id;
+      
+      if (userId) {
+        // Store user info temporarily for verification step
+        localStorage.setItem('registration_email', values.email);
+        localStorage.setItem('registration_user_id', userId.toString());
+        
+        toast.success(res.message || "Vendor registration successful!");
+        router.push(`/auth/verify-email?email=${values.email}&userId=${userId}`);
       } else {
-        alert("Registration failed. Please check your inputs and try again.");
+        // Handle case where response format is unexpected
+        toast.error("Unexpected response format from server");
+        console.error("Unexpected response format:", res);
       }
+    } catch (err: any) {
+      console.error("Vendor registration error:", err);
+      toast.error(err?.data?.message || "Vendor registration failed");
     }
   };
 
@@ -97,16 +121,22 @@ export default function VendorRegister() {
             icon={<BusinessIcon />}
           />
 
-          <FormSelect
-            control={form.control}
-            name="service_categories"
-            icon={<BusinessIcon />}
-            iconSize={24}
-            placeholder={isCategoriesLoading ? "Loading..." : "-select your service-"}
-            options={isCategoriesLoading ? [] : businessCategories}
-            multiple={true}
-            className="h-11"
-          />
+          {!categoriesLoading && businessCategories.length > 0 ? (
+            <FormSelect
+              control={form.control}
+              name="service_categories"
+              icon={<BusinessIcon />}
+              iconSize={24}
+              placeholder="-select your service-"
+              options={businessCategories}
+              multiple={true}
+              className="h-11"
+            />
+          ) : (
+            <div className="h-11 flex items-center justify-center bg-gray-100 rounded-md text-gray-500">
+              Loading categories...
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -141,13 +171,22 @@ export default function VendorRegister() {
           icon={<LockIcon />}
         />
 
-        <Button
-          type="submit"
-          className="w-full"
-          size="lg"
-          disabled={isLoading || isCategoriesLoading}
-        >
-          {isLoading ? "Submitting..." : "Next"}
+        {isError && (
+          <div className="text-red-500 text-center mb-4">
+            Error loading service categories. Please try again later.
+          </div>
+        )}
+        {categoriesLoading ? (
+          <div className="text-center mb-4">
+            Loading service categories...
+          </div>
+        ) : businessCategories.length === 0 && !categoriesLoading ? (
+          <div className="text-center mb-4 text-orange-500">
+            No service categories available. Please contact support.
+          </div>
+        ) : null}
+        <Button type="submit" className="w-full" size="lg" disabled={isLoading || categoriesLoading}>
+          {isLoading ? "Creating account..." : "Create Vendor Account"}
         </Button>
       </Form>
 

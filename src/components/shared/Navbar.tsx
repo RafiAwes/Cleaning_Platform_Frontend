@@ -9,17 +9,46 @@ import IconBox from "../reusable/Icon-box";
 import FavIcon from "@/favicon/favicon";
 import Avatars from "../reusable/avater";
 import assets, { loginUser } from "@/assets";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppSelector, useAppDispatch } from "@/redux/hooks";
+import { useLogoutMutation } from "@/redux/api/authApi";
+import { useRouter } from "next/navigation";
+import { helpers } from "@/lib/helpers";
+import { authKey } from "@/lib/constants";
+import { clearAuth } from "@/redux/features/authSlice";
+import { toast } from "sonner";
 
 const Navbar = () => {
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+  const [logoutUser] = useLogoutMutation();
+  const router = useRouter();
+  
+  const handleLogout = async () => {
+    try {
+      await logoutUser({}).unwrap();
+      // Clear auth cookie and Redux state
+      helpers.removeAuthCookie(authKey);
+      dispatch(clearAuth());
+      router.push('/auth');
+      toast.success("Logged out successfully!");
+    } catch (err) {
+      console.error("Logout error:", err);
+      // Even if backend logout fails, clear local state
+      helpers.removeAuthCookie(authKey);
+      dispatch(clearAuth());
+      router.push('/auth');
+      toast.success("Logged out successfully!");
+    }
+  };
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const ShowNavBc = ["/"];
+  const isShowNavBc = ShowNavBc.includes(pathname);
 
   const navLinks = [
     { href: "/", text: "Home" },
     { href: "/book-now", text: "Book now" },
-    ...((user?.role === "customer" || user?.role === "user") ? [{ href: "/blogs", text: "Blogs" }] : []),
+    ...(user?.role === "customer" ? [{ href: "/blogs", text: "Blogs" }] : []),
     { href: "/works", text: "How it works" },
     { href: "/about-us", text: "About us" },
     { href: "/faq", text: "FAQ" },
@@ -36,11 +65,12 @@ const Navbar = () => {
   }, [isMenuOpen]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  console.log(user);
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-secondary backdrop-blur-md border-gray-200">
+      <header
+        className={`sticky top-0 z-50 w-full  ${isShowNavBc ? "bg-linear-to-r from-[#a19991] to-[#c6c4c2]/30" : "bg-secondary backdrop-blur-md border-gray-200"}`}
+      >
         <div className="container px-4">
           <div className="flex h-16 items-center justify-between">
             <Link href="/">
@@ -59,10 +89,11 @@ const Navbar = () => {
                 <Link
                   key={link.text}
                   href={link.href}
-                  className={`font-medium transition-colors duration-300 ${activeLink === link.text
-                    ? "text-primary font-semibold"
-                    : "text-gray-600 hover:text-primary"
-                    }`}
+                  className={`font-medium transition-colors duration-300 ${
+                    activeLink === link.text
+                      ? "text-[#000000] font-semibold"
+                      : "text-gray-600 hover:text-[#000000]"
+                  }`}
                 >
                   {link.text}
                 </Link>
@@ -70,7 +101,7 @@ const Navbar = () => {
             </nav>
 
             {/* Desktop Button */}
-            {isAuthenticated && (user.role === "customer" || user.role === "admin" || user.role === "vendor") ? (
+            {user.role === "customer" ? (
               <div className="hidden lg:flex items-center gap-4">
                 <Link href={"/chart"}>
                   <IconBox className="rounded-md">
@@ -84,8 +115,8 @@ const Navbar = () => {
                   </IconBox>
                 </Link>
 
-                <Link href={"/account"}>
-                  <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="flex items-center gap-3 cursor-pointer group">
                     <Image
                       src={assets.LoginUserPhoto}
                       alt="user photo"
@@ -98,12 +129,25 @@ const Navbar = () => {
                       <p>{user.email}</p>
                     </div>
                   </div>
-                </Link>
+                                  
+                  {/* Dropdown menu */}
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                    <Link href="/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      My Account
+                    </Link>
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="hidden lg:flex items-center space-x-3">
                 <Link href="/auth">
-                  <Button>Create an account</Button>
+                  <Button className="h-11">Create an account</Button>
                 </Link>
               </div>
             )}
@@ -115,8 +159,9 @@ const Navbar = () => {
               aria-label="Toggle menu"
             >
               <Menu
-                className={`h-6 w-6 transition-transform duration-300 ${isMenuOpen ? "rotate-90 scale-0" : "rotate-0 scale-100"
-                  }`}
+                className={`h-6 w-6 transition-transform duration-300 ${
+                  isMenuOpen ? "rotate-90 scale-0" : "rotate-0 scale-100"
+                }`}
               />
             </button>
           </div>
@@ -125,15 +170,17 @@ const Navbar = () => {
 
       {/* Mobile Overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity lg:hidden ${isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
+        className={`fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity lg:hidden ${
+          isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
         onClick={toggleMenu}
       ></div>
 
       {/* Mobile Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full w-4/5 max-w-sm z-50 bg-secondary transform transition-transform duration-300 ease-in-out lg:hidden ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed top-0 left-0 h-full w-4/5 max-w-sm z-50 bg-secondary transform transition-transform duration-300 ease-in-out lg:hidden ${
+          isMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <div className="flex flex-col h-full">
           {/* Mobile Header */}
@@ -162,10 +209,11 @@ const Navbar = () => {
                   key={link.text}
                   href={link.href}
                   onClick={toggleMenu}
-                  className={`px-3 py-2 text-base font-medium rounded-md transition-colors duration-300 ${activeLink === link.text
-                    ? "text-primary bg-secondary font-semibold"
-                    : "text-gray-700 hover:bg-gray-100"
-                    }`}
+                  className={`px-3 py-2 text-base font-medium rounded-md transition-colors duration-300 ${
+                    activeLink === link.text
+                      ? "text-[#000000] bg-secondary font-semibold"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
                 >
                   {link.text}
                 </Link>
@@ -175,7 +223,7 @@ const Navbar = () => {
 
           {/* Mobile Button */}
           <div className="p-4   border-t border-gray-200 mt-auto ">
-            {isAuthenticated && (user.role === "customer" || user.role === "admin" || user.role === "vendor") ? (
+            {user.role === "customer" ? (
               <div>
                 <div className=" flex flex-col justify-center items-center text-black leading-5 mb-4">
                   <p className="font-semibold">{user.name || "User"}</p>
@@ -199,8 +247,8 @@ const Navbar = () => {
                     </div>
                   </Link>
 
-                  <Link href={"/account"} onClick={toggleMenu}>
-                    <div className="flex items-center gap-3  rounded-md p-1">
+                  <div className="relative">
+                    <div className="flex items-center gap-3 rounded-md p-1 cursor-pointer">
                       <Image
                         src={assets.LoginUserPhoto}
                         alt="user photo"
@@ -209,7 +257,23 @@ const Navbar = () => {
                         className="w-[40px] h-[40px] rounded-[6px]"
                       />
                     </div>
-                  </Link>
+                                    
+                    {/* Mobile dropdown menu */}
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                      <Link href="/account" onClick={toggleMenu} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        My Account
+                      </Link>
+                      <button 
+                        onClick={() => {
+                          handleLogout();
+                          toggleMenu();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (

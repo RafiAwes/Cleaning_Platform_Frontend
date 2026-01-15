@@ -8,13 +8,16 @@ import { Button } from "@/components/ui";
 import { LocationIcon, MessageIconTwo, PhoneIcon, SendIcon } from "@/icon";
 import { FromTextArea } from "@/components/reusable/from-textarea";
 import { contact_us } from "@/lib";
+import { useAppSelector } from "@/redux/hooks";
 
 const ContactUs = () => {
+  const { user } = useAppSelector((state) => state.auth);
+  
   const from = useForm({
     resolver: zodResolver(contact_us),
     defaultValues: {
-      name: "",
-      email: "",
+      name: user.name || "",
+      email: user.email || "",
       message: "",
     },
   });
@@ -84,7 +87,7 @@ const ContactUs = () => {
                 <MessageIconTwo />
                 <div>
                   <p className="text-gray-700 text-sm leading-relaxed">
-                    example@gmail.com
+                    {user.email || "example@gmail.com"}
                   </p>
                 </div>
               </div>

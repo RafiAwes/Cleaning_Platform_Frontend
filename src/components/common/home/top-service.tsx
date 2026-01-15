@@ -63,7 +63,7 @@ const services: Service[] = [
 
 export default function TopService() {
   return (
-    <div className="pt-[48px] xl:pt-[148px]">
+    <div className="pt-[48px] xl:pt-[100px]">
       <div className="container px-4">
         <div className="pb-8">
           <SubTitle text="Top services" />

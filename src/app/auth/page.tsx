@@ -17,12 +17,13 @@ import { setUser } from "@/redux/features/authSlice";
 import { useLoginInMutation } from "@/redux/api/authApi";
 import { helpers } from "@/lib/helpers";
 import { authKey } from "@/lib/constants";
-import { ResponseApiErrors } from "@/lib/api-response";
+import { toast } from "sonner";
 
 export default function Login() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const [login, { isLoading }] = useLoginInMutation();
+  const [loginUser, { isLoading }] = useLoginInMutation();
+  
   const from = useForm({
     resolver: zodResolver(sign_In),
     defaultValues: {
@@ -33,117 +34,74 @@ export default function Login() {
 
   const handleSubmit = async (values: FieldValues) => {
     try {
-      const res: any = await login(values).unwrap();
-
-      // Handle various possible API response formats
-      console.log('Raw API response:', res);
-
-      let token = res?.token || res?.access_token || res?.data?.token || res?.data?.access_token;
-      let user = res?.user || res?.data?.user || {};
-
-      // If user object is still empty, try to get user data from different possible locations
-      if ((!user || Object.keys(user).length === 0) && res?.user) {
-        user = res.user;
-      } else if ((!user || Object.keys(user).length === 0) && res?.data?.user) {
-        user = res.data.user;
-      } else if ((!user || Object.keys(user).length === 0) && res?.data) {
-        // Extract user-like properties from data
-        user = {
-          name: res.data.name || res.data.full_name || res.data.first_name,
-          email: res.data.email,
-          role: res.data.role || res.data.user_role || res.data.userType,
-        };
-      }
-
-      // If user is still empty, try to extract from the top-level response
-      if ((!user || Object.keys(user).length <= 1) && res && typeof res === 'object' && !token) {
-        // This means the whole response might be the user object
-        user = {
-          name: res.name || res.full_name || res.first_name,
-          email: res.email,
-          role: res.role || res.user_role || res.userType,
-        };
-        // Also check for token in the same object
-        if (!token) {
-          token = res.token || res.access_token;
-        }
-      }
-
-      console.log('Processed user data before storage:', { name: user.name, email: user.email, role: user.role, hasToken: !!token });
-
-      if (token) {
-        helpers.setAuthCookie(authKey, token);
-        // Also store user info in localStorage as backup
-        helpers.setStorageItem("auth_user", JSON.stringify({
-          name: user.name || '',
-          email: user.email || '',
-          role: user.role || '',
+      const res = await loginUser(values).unwrap();
+      
+      if (res?.access_token) {
+        // Store the token in cookie
+        helpers.setAuthCookie(authKey, res.access_token);
+        
+        // Store user info in Redux
+        dispatch(setUser({
+          name: res.user.name,
+          email: res.user.email,
+          role: res.user.role,
+          token: res.access_token,
         }));
-      } else {
-        console.warn('Login succeeded but no token received');
+        
+        // Redirect based on user role
+        if (res.user.role === 'vendor') {
+          // Check if vendor has uploaded documents by making an API call
+          // Ensure the cookie is set before making the API call
+          helpers.setAuthCookie(authKey, res.access_token);
+          
+          try {
+            // Use axios directly to make the API call with the token
+            const axios = (await import('axios')).default;
+            
+            const result = await axios.get('/vendor/document-status', {
+              baseURL: process.env.NEXT_PUBLIC_API_URL,
+              headers: {
+                'Authorization': `Bearer ${res.access_token}`,
+                'Accept': 'application/json',
+              },
+            });
+            
+            const docData = result.data;
+            console.log('Document status response data:', docData);
+            
+            if (docData.has_documents) {
+              // Documents exist, go to vendor dashboard
+              console.log('Documents found, redirecting to /vendor');
+              router.push('/vendor');
+            } else {
+              // No documents uploaded, go to document submission page
+              console.log('No documents found, redirecting to /auth/submit-documents');
+              router.push('/auth/submit-documents');
+            }
+          } catch (docErr: any) {
+            // If there's an error checking document status, check the status code
+            console.error('Document status check error:', docErr);
+            
+            // If it's a 401 or 403 error, it might mean the token wasn't accepted
+            if (docErr.response?.status === 401 || docErr.response?.status === 403) {
+              console.log('Authentication failed, redirecting to document upload');
+              router.push('/auth/submit-documents');
+            } else {
+              // For other errors, also redirect to upload
+              router.push('/auth/submit-documents');
+            }
+          }
+        } else if (res.user.role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/');
+        }
+        
+        toast.success(res.message || "Login successful!");
       }
-
-      const userData = {
-        name: user.name || '',
-        email: user.email || '',
-        role: user.role || '',
-        token,
-      };
-
-      console.log('Login API response:', res);
-      console.log('Extracted user data:', userData);
-
-      dispatch(setUser(userData));
-
-      // Ensure we have the role in the user data before redirecting
-      const currentUserRole = userData.role;
-      const normalizedRole = (currentUserRole || '').toLowerCase().trim();
-
-      console.log('Normalized role for redirect:', normalizedRole);
-
-      // Redirect based on user role
-      if (normalizedRole === "admin") {
-        router.push("/admin");
-      } else if (normalizedRole === "vendor") {
-        router.push("/vendor");
-      } else if (normalizedRole === "customer" || normalizedRole === "user") {
-        // For customer or any other user role, redirect to home
-        router.push("/");
-      } else {
-        // If role is still not recognized, default to home
-        router.push("/");
-      }
-    } catch (error: unknown) {
-      const apiError = error as any;
-      const errorData = apiError?.data;
-      const errorStatus = apiError?.status;
-
-      console.error("Login error status:", errorStatus);
-      console.error("Login error data:", errorData);
-      console.error("Full error object:", apiError);
-
-      // Prefer server validation messages when available
-      ResponseApiErrors(errorData, from);
-
-      // More specific error messages based on status
-      let message = "Login failed. Please check your credentials and try again.";
-
-      if (errorStatus === 401) {
-        message = "Invalid credentials. Please check your email and password.";
-      } else if (errorStatus === 404) {
-        message = "Login endpoint not found. Please contact support.";
-      } else if (errorStatus === 500) {
-        message = "Server error occurred. Please try again later.";
-      } else if (errorData?.message) {
-        message = errorData.message;
-      } else if (errorData?.error) {
-        message = errorData.error;
-      } else if (errorData?.msg) {
-        message = errorData.msg;
-      }
-
-      console.error("Login failed with message:", message);
-      alert(message);
+    } catch (err: any) {
+      console.error("Login error:", err);
+      toast.error(err?.data?.message || "Login failed");
     }
   };
   return (
@@ -180,7 +138,7 @@ export default function Login() {
         </div>
 
         <div>
-          <Button className="w-full" size="lg" type="submit" disabled={isLoading}>
+          <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
             {isLoading ? "Logging in..." : "Login"}
           </Button>
         </div>

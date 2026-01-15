@@ -264,7 +264,7 @@ export default function Users() {
                 fallbackStyle="aStyle"
               />
               <ul className="leading-5 mb-1">
-                <li className="font-semibold"> Rafi Awes</li>
+                <li className="font-semibold">Md. Abid Hasan</li>
                 <li className="text-figma-a_gray">example@gmail.com</li>
               </ul>
             </div>

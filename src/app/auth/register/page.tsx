@@ -4,49 +4,58 @@ import { useRouter } from "next/navigation";
 import { FieldValues, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FromInput } from "@/components/reusable/form-input";
-import {
-  EmailIcon,
-  GoogleIcon,
-  LockIcon,
-  LocationFieldIcon,
-  UserIcon,
-} from "@/icon";
+import { EmailIcon, GoogleIcon, LockIcon, UserIcon } from "@/icon";
 import Form from "@/components/reusable/from";
 import SubTitle from "@/components/reusable/title";
 import { ArrowRight } from "lucide-react";
 import { register_sc } from "@/lib";
 import Link from "next/link";
-import { useRegisterCustomerMutation } from "@/redux/api/authApi";
- 
-export default function Login() {
+import { useRegisterMutation } from "@/redux/api/authApi";
+import { useAppDispatch } from "@/redux/hooks";
+import { setUser } from "@/redux/features/authSlice";
+import { helpers } from "@/lib/helpers";
+import { authKey } from "@/lib/constants";
+import { toast } from "sonner";
+
+export default function Register() {
   const router = useRouter();
-  const [registerCustomer, { isLoading }] = useRegisterCustomerMutation();
+  const dispatch = useAppDispatch();
+  const [registerUser, { isLoading }] = useRegisterMutation();
+  
   const from = useForm({
     resolver: zodResolver(register_sc),
     defaultValues: {
       name: "",
-      address: "",
       email: "",
       password: "",
       c_password: "",
+
     },
   });
 
   const handleSubmit = async (values: FieldValues) => {
-    const payload = {
-      name: values.name,
-      email: values.email,
-      address: values.address,
-      password: values.password,
-      password_confirmation: values.c_password,
-      role: "customer",
-    };
-
     try {
-      await registerCustomer(payload).unwrap();
-      router.push("/auth");
-    } catch (error) {
-      console.error("User registration failed", error);
+      const userData = {
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        password_confirmation: values.c_password,
+        role: "customer" // Hardcoded for now, will add role selection later
+      };
+
+      const res = await registerUser(userData).unwrap();
+      
+      if (res?.user_id) {
+        // Store user info temporarily for verification step
+        localStorage.setItem('registration_email', values.email);
+        localStorage.setItem('registration_user_id', res.user_id.toString());
+        
+        toast.success(res.message || "Registration successful!");
+        router.push(`/auth/verify-email?email=${values.email}&userId=${res.user_id}`);
+      }
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      toast.error(err?.data?.message || "Registration failed");
     }
   };
   return (
@@ -58,12 +67,6 @@ export default function Login() {
           name="name"
           placeholder="Your full name"
           icon={<UserIcon />}
-        />
-        <FromInput
-          className="h-11"
-          name="address"
-          placeholder="Your address"
-          icon={<LocationFieldIcon />}
         />
         <FromInput
           className="h-11"
@@ -88,12 +91,7 @@ export default function Login() {
         />
 
         <div>
-          <Button
-            type="submit"
-            className="w-full"
-            size="lg"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
             {isLoading ? "Creating account..." : "Create account"}
           </Button>
         </div>

@@ -1,29 +1,11 @@
 "use client";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { FacebookIcon, InstagramIcon, TiktokIcon, TwitterIcon, YoutubeIcon } from "@/icon";
-import { useForm } from "react-hook-form";
+
+import { FacebookIcon, InstagramIcon, TiktokIcon, TwitterIcon } from "@/icon";
 import { ImgBox } from "../reusable/Img-box";
 import assets from "@/assets";
 import Link from "next/link";
 
-type FormData = {
-  email: string;
-};
-
 const Footer = () => {
-  const [email, setEmail] = useState("");
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<FormData>();
-  const onSubmit = (data: FormData) => {
-    console.log(data);
-  };
-
   return (
     <div
       className="bg-cover bg-no-repeat"
@@ -52,29 +34,6 @@ const Footer = () => {
               with certificates and after-training
             </p>
           </div>
-
-          {/* Email Subscription Form */}
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col sm:flex-row gap-3 justify-center mb-3"
-          >
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              {...register("email", {
-                required: "Email is required",
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address",
-                },
-              })}
-              className="text-white placeholder:text-white"
-            />
-            <Button type="submit" className="bg-white text-black px-8">
-              Subscribe
-            </Button>
-          </form>
-
 
           {/* Social Media Icons */}
           <div className="flex gap-4 justify-center ">

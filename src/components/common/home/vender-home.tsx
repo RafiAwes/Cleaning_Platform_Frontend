@@ -3,7 +3,7 @@ import Link from "next/link";
 
 function VendorBox() {
   return (
-    <div className="pt-[48px] xl:pt-[148px]">
+    <div className="pt-[48px] xl:pt-[100px]">
       <div className="container px-4">
         <div
           className="h-auto xl:h-[380px] mb-10 flex items-center rounded-2xl relative overflow-hidden"

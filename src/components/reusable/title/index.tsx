@@ -8,7 +8,7 @@ interface titleProps {
   iconStyle?: string;
 }
 
-function SubTitle({ text, svg = true, className, iconStyle }: titleProps) {
+function SubTitle({ text, className }: titleProps) {
   return (
     <div
       className={cn(
@@ -17,11 +17,6 @@ function SubTitle({ text, svg = true, className, iconStyle }: titleProps) {
       )}
     >
       {text}
-      {svg && (
-        <span className="flex items-center">
-          <CustomerIcon className={iconStyle} />
-        </span>
-      )}
     </div>
   );
 }

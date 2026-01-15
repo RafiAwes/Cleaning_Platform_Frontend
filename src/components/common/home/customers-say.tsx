@@ -62,7 +62,7 @@ const CustomersSay = () => {
   ];
 
   return (
-    <div className="pt-[48px] xl:pt-[148px] relative">
+    <div className="pt-[48px] xl:pt-[100px] relative">
       <div className="container px-4">
         <div className="pb-8">
           <SubTitle text="See what our customers say" />

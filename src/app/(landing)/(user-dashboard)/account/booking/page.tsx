@@ -6,6 +6,7 @@ import { BookingHistoryIcon, DateDBIcon } from "@/icon";
 import { TableCell, TableRow } from "@/components/ui";
 import { PaymentTable } from "@/components/reusable/vendor-table";
 import { useRouter } from "next/navigation";
+import { useAppSelector } from "@/redux/hooks";
 
 interface Booking {
   id: number;
@@ -18,47 +19,48 @@ interface Booking {
   status: "completed" | "pending" | "ongoing";
 }
 
-const bookings: Booking[] = [
-  {
-    id: 1,
-    service: "House cleaning service for residential areas in New York City.",
-    price: 250,
-    customerName: "John Doe",
-    customerEmail: "example@gmail.com",
-    date: "10th Nov, 2025",
-    status: "pending",
-  },
-  {
-    id: 2,
-    service: "House cleaning service for residential areas in New York City.",
-    price: 250,
-    customerName: "John Doe",
-    customerEmail: "example@gmail.com",
-    date: "10th Nov, 2025",
-    status: "ongoing",
-  },
-  {
-    id: 3,
-    service: "House cleaning service for residential areas in New York City.",
-    price: 250,
-    customerName: "John Doe",
-    customerEmail: "example@gmail.com",
-    date: "10th Nov, 2025",
-    status: "ongoing",
-  },
-  {
-    id: 4,
-    service: "House cleaning service for residential areas in New York City.",
-    price: 250,
-    customerName: "John Doe",
-    customerEmail: "example@gmail.com",
-    date: "10th Nov, 2025",
-    status: "ongoing",
-  },
-];
-
 const BookingPage = () => {
+  const { user } = useAppSelector((state) => state.auth);
   const router = useRouter();
+
+  const bookings: Booking[] = [
+    {
+      id: 1,
+      service: "House cleaning service for residential areas in New York City.",
+      price: 250,
+      customerName: user.name || "John Doe",
+      customerEmail: user.email || "example@gmail.com",
+      date: "10th Nov, 2025",
+      status: "pending",
+    },
+    {
+      id: 2,
+      service: "House cleaning service for residential areas in New York City.",
+      price: 250,
+      customerName: user.name || "John Doe",
+      customerEmail: user.email || "example@gmail.com",
+      date: "10th Nov, 2025",
+      status: "ongoing",
+    },
+    {
+      id: 3,
+      service: "House cleaning service for residential areas in New York City.",
+      price: 250,
+      customerName: user.name || "John Doe",
+      customerEmail: user.email || "example@gmail.com",
+      date: "10th Nov, 2025",
+      status: "ongoing",
+    },
+    {
+      id: 4,
+      service: "House cleaning service for residential areas in New York City.",
+      price: 250,
+      customerName: user.name || "John Doe",
+      customerEmail: user.email || "example@gmail.com",
+      date: "10th Nov, 2025",
+      status: "ongoing",
+    },
+  ];
 
   const handleNavigate = (statusValue: string) => {
     if (statusValue === "pending") {

@@ -21,7 +21,7 @@ export default function BookingCalendar() {
     "December",
   ];
 
-  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Extra"];
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -146,7 +146,7 @@ export default function BookingCalendar() {
       {/* Calendar Grid */}
       <div className="rounded-lg overflow-hidden">
         {/* Day Headers */}
-        <div className="grid grid-cols-8 gap-1 mb-1">
+        <div className="grid grid-cols-7 gap-1 mb-1">
           {daysOfWeek.map((day) => (
             <div
               key={day}
@@ -158,7 +158,7 @@ export default function BookingCalendar() {
         </div>
 
         {/* Calendar Days */}
-        <div className="grid grid-cols-8 gap-1">{renderCalendarDays()}</div>
+        <div className="grid grid-cols-7 gap-1">{renderCalendarDays()}</div>
       </div>
     </div>
   );

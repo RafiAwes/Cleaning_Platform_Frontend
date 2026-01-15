@@ -2,22 +2,18 @@ import { tagTypes } from "../tag-types";
 import { baseApi } from "./baseApi";
 
 export const authApi = baseApi.injectEndpoints({
-  overrideExisting: true,
   endpoints: (build) => ({
-    registerCustomer: build.mutation({
+    // User Registration
+    register: build.mutation({
       query: (data) => ({
-        url: "/register",
+        url: "/register/",
         method: "POST",
         data,
       }),
+      invalidatesTags: [tagTypes.users],
     }),
-    registerVendor: build.mutation({
-      query: (data) => ({
-        url: "/register",
-        method: "POST",
-        data,
-      }),
-    }),
+    
+    // User Login
     LoginIn: build.mutation({
       query: (data) => {
         return {
@@ -26,8 +22,36 @@ export const authApi = baseApi.injectEndpoints({
           data,
         };
       },
-      invalidatesTags: [tagTypes.profile],
+      invalidatesTags: [tagTypes.users],
     }),
+    
+    // Email Verification
+    sendVerificationCode: build.mutation({
+      query: (data) => ({
+        url: "/email/send-verification-code",
+        method: "POST",
+        data,
+      }),
+    }),
+    
+    verifyEmail: build.mutation({
+      query: (data) => ({
+        url: "/email/verify",
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: [tagTypes.users],
+    }),
+    // Logout
+    logout: build.mutation({
+      query: () => ({
+        url: "/logout",
+        method: "POST",
+      }),
+      invalidatesTags: [tagTypes.users],
+    }),
+    
+    // Password Reset
     forgotPassword: build.mutation({
       query: (data) => ({
         url: "/password/email",
@@ -35,14 +59,7 @@ export const authApi = baseApi.injectEndpoints({
         data,
       }),
     }),
-    otpVarify: build.mutation({
-      query: (data) => ({
-        url: "/email/verify",
-        method: "POST",
-        data,
-      }),
-      invalidatesTags: [tagTypes.profile],
-    }),
+    
     resetPassword: build.mutation({
       query: (data) => ({
         url: "/password/reset",
@@ -50,48 +67,37 @@ export const authApi = baseApi.injectEndpoints({
         data,
       }),
     }),
-    getProfile: build.query({
+    
+    // Vendor Document Upload
+    uploadBusinessDocuments: build.mutation({
+      query: (formData) => ({
+        url: "/vendor/upload-business-documents",
+        method: "POST",
+        body: formData,
+        // Indicate that this is FormData so the base query won't override Content-Type
+      }),
+      invalidatesTags: [tagTypes.users],
+    }),
+    
+    // Get vendor document status
+    getVendorDocumentStatus: build.query({
       query: () => ({
-        url: "/auth/get-profile",
+        url: "/vendor/document-status",
         method: "GET",
       }),
-      providesTags: [tagTypes.profile],
-    }),
-    updateProfile: build.mutation({
-      query: (data) => ({
-        url: "/auth",
-        method: "PATCH",
-        ContentType: "multipart/form-data",
-        data,
-      }),
-      invalidatesTags: [tagTypes.profile],
-    }),
-    updatePassword: build.mutation({
-      query: (data) => ({
-        url: "/auth/change-password",
-        method: "POST",
-        data,
-      }),
-    }),
-    logout: build.mutation<void, void>({
-      query: () => ({
-        url: "/logout",
-        method: "POST",
-      }),
-      invalidatesTags: [tagTypes.profile],
+      providesTags: [tagTypes.users],
     }),
   }),
 });
 
 export const {
-  useRegisterCustomerMutation,
-  useRegisterVendorMutation,
+  useRegisterMutation,
   useLoginInMutation,
-  useForgotPasswordMutation,
-  useOtpVarifyMutation,
-  useResetPasswordMutation,
-  useGetProfileQuery,
-  useUpdateProfileMutation,
-  useUpdatePasswordMutation,
+  useSendVerificationCodeMutation,
+  useVerifyEmailMutation,
   useLogoutMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+  useUploadBusinessDocumentsMutation,
+  useGetVendorDocumentStatusQuery,
 } = authApi;

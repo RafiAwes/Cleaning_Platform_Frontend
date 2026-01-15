@@ -16,6 +16,7 @@ import { FieldValues, useForm } from "react-hook-form";
 import IconBox from "@/components/reusable/Icon-box";
 import SubTitle from "@/components/reusable/title";
 import FavIcon from "@/favicon/favicon";
+import ProtectedRoute from "@/components/common/ProtectedRoute";
 
 const intState = {
   isDReq: false,
@@ -120,202 +121,203 @@ const Notification = () => {
   const packagePrice = 250;
 
   return (
-    <div className="container px-4 mb-10">
-      <SubTitle svg={false} className="text-2xl my-10" text="Notification" />
+    <ProtectedRoute allowedRoles={["customer"]}>
+      <div className="container px-4 mb-10">
+        <SubTitle svg={false} className="text-2xl my-10" text="Notification" />
 
-      <div className="space-y-3">
-        {notifications.map((item, index) => (
-          <div
-            key={index}
-            onClick={() => {
-              if (item.showTapToView) {
-                setDeliveryReModal("isDReq", true);
-              }
-            }}
-            className={`flex flex-col sm:flex-row sm:items-center justify-between 
-                       bg-muted/50 py-4 px-4 rounded-lg gap-4 sm:gap-0  ${item.showTapToView ? "cursor-pointer" : ""}`}
-          >
-            {/* LEFT SIDE */}
-            <div className="flex items-start sm:items-center gap-4">
-              <IconBox>
-                <FavIcon name="noti" />
-              </IconBox>
+        <div className="space-y-3">
+          {notifications.map((item, index) => (
+            <div
+              key={index}
+              onClick={() => {
+                if (item.showTapToView) {
+                  setDeliveryReModal("isDReq", true);
+                }
+              }}
+              className={`flex flex-col sm:flex-row sm:items-center justify-between 
+                         bg-muted/50 py-4 px-4 rounded-lg gap-4 sm:gap-0  ${item.showTapToView ? "cursor-pointer" : ""}`}
+            >
+              {/* LEFT SIDE */}
+              <div className="flex items-start sm:items-center gap-4">
+                <IconBox>
+                  <FavIcon name="noti" />
+                </IconBox>
 
-              <div className="flex flex-col">
-                <span
-                  className={`font-medium ${getTextColor(
-                    item.type as NotificationType
-                  )}`}
-                >
-                  {item.title}
-                </span>
+                <div className="flex flex-col">
+                  <span
+                    className={`font-medium ${getTextColor(
+                      item.type as NotificationType
+                    )}`}
+                  >
+                    {item.title}
+                  </span>
 
-                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                  <span>{item.date}</span>
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                    <span>{item.date}</span>
 
-                  {item.showTapToView && (
-                    <>
-                      <span>•</span>
-                      <span>Tap to view</span>
-                    </>
-                  )}
+                    {item.showTapToView && (
+                      <>
+                        <span>•</span>
+                        <span>Tap to view</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* RIGHT SIDE ICON */}
-            <div className="text-foreground flex sm:block justify-end w-full sm:w-auto">
-              {item.read ? (
-                <FavIcon name="message_read" />
-              ) : (
-                <FavIcon name="message_unread" />
-              )}
+              {/* RIGHT SIDE ICON */}
+              <div className="text-foreground flex sm:block justify-end w-full sm:w-auto">
+                {item.read ? (
+                  <FavIcon name="message_read" />
+                ) : (
+                  <FavIcon name="message_unread" />
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* add delivery req */}
-      <Modal2
-        open={deliveryReModal.isDReq}
-        setIsOpen={(v: any) => setDeliveryReModal("isDReq", v)}
-        title="Delivery request"
-        titleStyle="text-center"
-        className="sm:max-w-xl lg:max-w-2xl"
-      >
-        <div
-          className="absolute top-3 right-4 cursor-pointer"
-          onClick={() => setDeliveryReModal("isDReq", false)}
-        >
-          <X className="text-black" />
+          ))}
         </div>
-        <Form className="space-y-4" from={from} onSubmit={handleSubmit}>
-          <div className="flex flex-col md:flex-row md:justify-between gap-2">
-            <div className="bg-secondary p-3 rounded-figma-sm w-full xl:w-[60%]">
-              <h3 className="text-sm font-semibold mb-3">Order details</h3>
-              <div className="flex flex-col md:flex-row gap-3 md:gap-0 md:justify-between">
-                <div className="flex gap-3">
-                  <Image
-                    src={assets.bookingDetailsPhoto}
-                    alt="House"
-                    width={40}
-                    height={40}
-                    className="w-12 h-12 rounded object-cover"
-                  />
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-600 mb-1 wrap-break-word">
-                      House cleaning service for residential areas in New York
-                      City.
-                    </p>
-                    <p className="text-base font-semibold">${packagePrice}</p>
+
+        {/* add delivery req */}
+        <Modal2
+          open={deliveryReModal.isDReq}
+          setIsOpen={(v: any) => setDeliveryReModal("isDReq", v)}
+          title="Delivery request"
+          titleStyle="text-center"
+          className="sm:max-w-xl lg:max-w-2xl"
+        >
+          <div
+            className="absolute top-3 right-4 cursor-pointer"
+            onClick={() => setDeliveryReModal("isDReq", false)}
+          >
+            <X className="text-black" />
+          </div>
+          <Form className="space-y-4" from={from} onSubmit={handleSubmit}>
+            <div className="flex flex-col md:flex-row md:justify-between gap-2">
+              <div className="bg-secondary p-3 rounded-figma-sm w-full xl:w-[60%]">
+                <h3 className="text-sm font-semibold mb-3">Order details</h3>
+                <div className="flex flex-col md:flex-row gap-3 md:gap-0 md:justify-between">
+                  <div className="flex gap-3">
+                    <Image
+                      src={assets.bookingDetailsPhoto}
+                      alt="House"
+                      width={40}
+                      height={40}
+                      className="w-12 h-12 rounded object-cover"
+                    />
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-600 mb-1 wrap-break-word">
+                        House cleaning service for residential areas in New York
+                        City.
+                      </p>
+                      <p className="text-base font-semibold">${packagePrice}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className=" bg-secondary p-3 rounded-figma-sm w-full xl:w-[40%]">
+                <h3 className="text-sm font-semibold mb-3">Vendor details</h3>
+                <div className=" flex items-center gap-2">
+                  <div>
+                    <Image
+                      src={assets.userPhoto1}
+                      alt="photo"
+                      width={40}
+                      height={40}
+                      className="rounded-full w-[40px] h-[40px]"
+                    />
+                  </div>
+                  <div>
+                    <h1 className="text-[#000000]  text-[16px]">John Doe</h1>
+                    <p>example@gmail.com</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className=" bg-secondary p-3 rounded-figma-sm w-full xl:w-[40%]">
-              <h3 className="text-sm font-semibold mb-3">Vendor details</h3>
-              <div className=" flex items-center gap-2">
-                <div>
-                  <Image
-                    src={assets.userPhoto1}
-                    alt={"photo"}
-                    width={40}
-                    height={40}
-                    className="rounded-full w-[40px] h-[40px]"
-                  />
-                </div>
-                <div>
-                  <h1 className="text-[#000000]  text-[16px]">John Doe</h1>
-                  <p>example@gmail.com</p>
+            {/* delivery_details */}
+            <div>
+              <h3 className="text-sm font-semibold mb-3">Delivery details</h3>
+              <div className="flex flex-wrap gap-2">
+                {[1, 2, 3, 4].map((_, index) => (
+                  <div key={index}>
+                    <Image
+                      src={assets.service1}
+                      alt="House"
+                      width={40}
+                      height={40}
+                      className="w-16 h-16 rounded-lg object-cover"
+                    />
+                  </div>
+                ))}
+
+                <div className="w-16 h-16 rounded-lg border flex justify-center items-center">
+                  <p className="text-xl font-semibold">+4</p>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* delivery_details */}
-          <div>
-            <h3 className="text-sm font-semibold mb-3">Delivery details</h3>
-            <div className="flex flex-wrap gap-2">
-              {[1, 2, 3, 4].map((_, index) => (
-                <div key={index}>
-                  <Image
-                    src={assets.service1}
-                    alt="House"
-                    width={40}
-                    height={40}
-                    className="w-16 h-16 rounded-lg object-cover"
-                  />
-                </div>
-              ))}
-
-              <div className="w-16 h-16 rounded-lg border flex justify-center items-center">
-                <p className="text-xl font-semibold">+4</p>
-              </div>
+            <div>
+              <p>
+                Lorem ipsum dolor sit amet consectetur. Venenatis odio velit
+                elementum gravida erat tincidunt enim bibendum. Adipiscing ut
+                euismod maecenas duis ac turpis ut. Non odio malesuada pretium
+                interdum facilisis. Volutpat leo scelerisque lacus lectus et
+                donec. Enim vel auctor integer tincidunt. Amet sem nibh eget duis
+                lectus venenatis nec. Ligula egestas consequat amet egestas
+                consectetur nullam quisque arcu. Auctor gravida ac consequat velit
+                egestas tellus vestibulum elementum. Arcu parturient quis tortor
+                molestie massa dolor lectus nibh. Varius porta in consectetur.
+              </p>
             </div>
-          </div>
-          <div>
-            <p>
-              Lorem ipsum dolor sit amet consectetur. Venenatis odio velit
-              elementum gravida erat tincidunt enim bibendum. Adipiscing ut
-              euismod maecenas duis ac turpis ut. Non odio malesuada pretium
-              interdum facilisis. Volutpat leo scelerisque lacus lectus et
-              donec. Enim vel auctor integer tincidunt. Amet sem nibh eget duis
-              lectus venenatis nec. Ligula egestas consequat amet egestas
-              consectetur nullam quisque arcu. Auctor gravida ac consequat velit
-              egestas tellus vestibulum elementum. Arcu parturient quis tortor
-              molestie massa dolor lectus nibh. Varius porta in consectetur.
-            </p>
-          </div>
 
-          <div className="flex flex-col md:flex-row gap-2 w-full">
-            <Button
-              onClick={() => setDeliveryReModal("isDReq", false)}
-              className="w-full md:w-[50%] bg-[#FF5445]"
-              size="lg"
-            >
-              Decline
-            </Button>
-            <Button
-              onClick={() => {
-                (setDeliveryReModal("isDReq", false),
-                  setDeliveryReModal("isFedb", true));
-              }}
-              className="w-full md:w-[50%] bg-[#2D9D1E]"
-              size="lg"
-            >
-              Accept
-            </Button>
-          </div>
-        </Form>
-      </Modal2>
+            <div className="flex flex-col md:flex-row gap-2 w-full">
+              <Button
+                onClick={() => setDeliveryReModal("isDReq", false)}
+                className="w-full md:w-[50%] bg-[#FF5445]"
+                size="lg"
+              >
+                Decline
+              </Button>
+              <Button
+                onClick={() => {
+                  (setDeliveryReModal("isDReq", false),
+                    setDeliveryReModal("isFedb", true));
+                }}
+                className="w-full md:w-[50%] bg-[#2D9D1E]"
+                size="lg"
+              >
+                Accept
+              </Button>
+            </div>
+          </Form>
+        </Modal2>
 
-      {/* add feedback */}
-      <Modal2
-        open={deliveryReModal.isFedb}
-        setIsOpen={(v: any) => setDeliveryReModal("isFedb", v)}
-        title="Your feedback"
-        titleStyle="text-center"
-        className="sm:max-w-xl"
-      >
-        <div
-          className="absolute top-3 right-4 cursor-pointer"
-          onClick={() => setDeliveryReModal("isFedb", false)}
+        {/* add feedback */}
+        <Modal2
+          open={deliveryReModal.isFedb}
+          setIsOpen={(v: any) => setDeliveryReModal("isFedb", v)}
+          title="Your feedback"
+          titleStyle="text-center"
+          className="sm:max-w-xl"
         >
-          <X className="text-black" />
-        </div>
-        <div className="flex flex-col justify-center items-center border-b mb-4 pb-4 space-y-2">
-          <FeedbackCheckIcon />
-          <h1 className="text-center xl:text-[20px] font-bold text-[#2D9D1E]">
-            Payment successful
-          </h1>
-          <h1 className="text-center xl:text-[28px] font-bold">$250</h1>
-        </div>
+          <div
+            className="absolute top-3 right-4 cursor-pointer"
+            onClick={() => setDeliveryReModal("isFedb", false)}
+          >
+            <X className="text-black" />
+          </div>
+          <div className="flex flex-col justify-center items-center border-b mb-4 pb-4 space-y-2">
+            <FeedbackCheckIcon />
+            <h1 className="text-center xl:text-[20px] font-bold text-[#2D9D1E]">
+              Payment successful
+            </h1>
+            <h1 className="text-center xl:text-[28px] font-bold">$250</h1>
+          </div>
 
-        <h1 className="text-center xl:text-[20px] font-bold py-2">
-          Share your experience with John Doe
-        </h1>
-        <Form className="space-y-4" from={from} onSubmit={handleSubmit2}>
+          <h1 className="text-center xl:text-[20px] font-bold py-2">
+            Share your experience with John Doe
+          </h1>
+          <Form className="space-y-4" from={from} onSubmit={handleSubmit2}>
           <div className="flex justify-center gap-2 mb-8">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -371,6 +373,7 @@ const Notification = () => {
         </Form>
       </Modal2>
     </div>
+  </ProtectedRoute>
   );
 };
 

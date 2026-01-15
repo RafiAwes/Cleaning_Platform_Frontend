@@ -1,8 +1,8 @@
-"use client";
 import SidebarNav from "@/components/common/super-dash/reuse/sideber-nav";
 import { DblogoutIcon } from "@/icon";
-import LogoutButton from "./logout-button";
+import Link from "next/link";
 import { ReactNode } from "react";
+import LogoutButton from "./logout-button";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
 
 interface AccountLayoutProps {
@@ -11,7 +11,7 @@ interface AccountLayoutProps {
 
 const AccountLayout = ({ children }: AccountLayoutProps) => {
   return (
-    <ProtectedRoute allowedRoles={["customer", "user", "vendor", "admin"]} redirectTo="/auth">
+    <ProtectedRoute allowedRoles={["customer"]}>
       <div className="container px-4 ">
         <div className="pt-6 xl:pt-10 pb-10">
           <div className="flex flex-1 flex-col lg:flex-row gap-4  ">

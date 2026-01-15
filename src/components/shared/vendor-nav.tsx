@@ -7,10 +7,39 @@ import Link from "next/link";
 import FavIcon from "@/favicon/favicon";
 import IconBox from "../reusable/Icon-box";
 import Avatars from "../reusable/avater";
+import { useAppSelector, useAppDispatch } from "@/redux/hooks";
+import { useLogoutMutation } from "@/redux/api/authApi";
+import { useRouter } from "next/navigation";
+import { helpers } from "@/lib/helpers";
+import { authKey } from "@/lib/constants";
+import { clearAuth } from "@/redux/features/authSlice";
+import { toast } from "sonner";
 
 export default function VendorNav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+  const [logoutUser] = useLogoutMutation();
+  const router = useRouter();
+  
+  const handleLogout = async () => {
+    try {
+      await logoutUser({}).unwrap();
+      // Clear auth cookie and Redux state
+      helpers.removeAuthCookie(authKey);
+      dispatch(clearAuth());
+      router.push('/auth');
+      toast.success("Logged out successfully!");
+    } catch (err) {
+      console.error("Logout error:", err);
+      // Even if backend logout fails, clear local state
+      helpers.removeAuthCookie(authKey);
+      dispatch(clearAuth());
+      router.push('/auth');
+      toast.success("Logged out successfully!");
+    }
+  };
 
   const navItems = [
     { name: "Home", icon: "home_ven", icon_i: "home_ven_i", href: "/vendor" },
@@ -103,17 +132,32 @@ export default function VendorNav() {
             </Link>
 
             <Link href="/vendor/account">
-              <div className="flex items-center gap-3">
-                <Avatars
-                  src=""
-                  fallback="P"
-                  alt="profile"
-                  className="rounded-md"
-                  fallbackStyle="rounded-md bg-white text-black"
-                />
-                <div className=" text-black leading-5 mb-1">
-                  <p className="font-semibold">Elizabeth Olson</p>
-                  <p>example@gmail.com</p>
+              <div className="relative">
+                <div className="flex items-center gap-3 cursor-pointer group">
+                  <Avatars
+                    src=""
+                    fallback={user.name?.charAt(0) || 'V'}
+                    alt="profile"
+                    className="rounded-md"
+                    fallbackStyle="rounded-md bg-white text-black"
+                  />
+                  <div className=" text-black leading-5 mb-1">
+                    <p className="font-semibold">{user.name || "Vendor"}</p>
+                    <p>{user.email || ""}</p>
+                  </div>
+                </div>
+                
+                {/* Dropdown menu */}
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                  <div className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" onClick={() => router.push('/vendor/account')}>
+                    My Account
+                  </div>
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Sign out
+                  </button>
                 </div>
               </div>
             </Link>
@@ -156,15 +200,26 @@ export default function VendorNav() {
               <div className="flex items-center gap-3">
                 <Avatars
                   src=""
-                  fallback="P"
+                  fallback={user.name?.charAt(0) || 'V'}
                   className="rounded-md"
                   fallbackStyle="rounded-md bg-white text-black"
                   alt="profile"
                 />
                 <div className=" text-black leading-5 mb-1">
-                  <p className="font-semibold">Elizabeth Olson</p>
-                  <p>example@gmail.com</p>
+                  <p className="font-semibold">{user.name || "Vendor"}</p>
+                  <p>{user.email || ""}</p>
                 </div>
+              </div>
+              <div className="mt-3 flex justify-center">
+                <button 
+                  onClick={() => {
+                    handleLogout();
+                    setIsOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Sign out
+                </button>
               </div>
             </div>
           </div>

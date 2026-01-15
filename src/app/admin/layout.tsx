@@ -9,7 +9,7 @@ import ProtectedRoute from "@/components/common/ProtectedRoute";
 export default function AdminLayout({ children }: childrenProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
-    <ProtectedRoute allowedRoles={["admin"]} redirectTo="/auth">
+    <ProtectedRoute allowedRoles={["admin"]}>
       <TitleProvider>
         <div className="flex h-screen overflow-hidden">
           {/* <!-- ===== Sidebar Start ===== --> */}

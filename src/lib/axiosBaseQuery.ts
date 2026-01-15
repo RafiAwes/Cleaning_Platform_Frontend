@@ -12,6 +12,7 @@ const axiosBaseQuery =
       url: string;
       method?: AxiosRequestConfig["method"];
       data?: AxiosRequestConfig["data"];
+      body?: AxiosRequestConfig["data"];
       params?: AxiosRequestConfig["params"];
       headers?: AxiosRequestConfig["headers"];
       ContentType?: string;
@@ -24,6 +25,7 @@ const axiosBaseQuery =
     url,
     method,
     data,
+    body,
     params,
     headers,
     ContentType,
@@ -31,14 +33,18 @@ const axiosBaseQuery =
   }) => {
     const token = helpers.getAuthCookie(authKey);
     try {
+      // Use 'body' if provided (RTK Query pattern), otherwise use 'data'
+      const requestData = body !== undefined ? body : data;
+      
       const result = await axios({
         url: baseUrl + url,
         method,
-        data,
+        data: requestData,
         params,
         onUploadProgress,
         headers: {
-          ...(ContentType && { "Content-Type": ContentType }),
+          // Only set Content-Type if not using FormData
+          ...(requestData instanceof FormData ? {} : { "Content-Type": ContentType || "application/json" }),
           Authorization: `Bearer ${token}`,
           ...headers,
         },

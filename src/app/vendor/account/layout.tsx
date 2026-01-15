@@ -1,17 +1,24 @@
 import SidebarNav from "@/components/common/super-dash/reuse/sideber-nav";
 import { childrenProps } from "@/types";
+import VendorLogoutButton from "./logout-button";
+import ProtectedRoute from "@/components/common/ProtectedRoute";
 
 export default function AccountLayout({ children }: childrenProps) {
   return (
-    <div className="container mt-10">
-      <div className="flex flex-1 flex-col lg:flex-row gap-4 space-x-10">
-        <div className="block w-full lg:w-[280px] lg:shrink-0 lg:sticky  h-fit">
-          <SidebarNav items={sidebarNavItems} defaultPath="/vendor/account" />
-        </div>
+    <ProtectedRoute allowedRoles={["vendor"]}>
+      <div className="container mt-10">
+        <div className="flex flex-1 flex-col lg:flex-row gap-4 space-x-10">
+          <div className="block w-full lg:w-[280px] lg:shrink-0 lg:sticky  h-fit">
+            <SidebarNav items={sidebarNavItems} defaultPath="/vendor/account" />
+            <div className="px-2">
+              <VendorLogoutButton />
+            </div>
+          </div>
 
-        <div className="flex-1 border rounded-xl p-4">{children}</div>
+          <div className="flex-1 border rounded-xl p-4">{children}</div>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }
 

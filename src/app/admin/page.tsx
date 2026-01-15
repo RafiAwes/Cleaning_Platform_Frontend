@@ -33,7 +33,7 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-5">
           <div className="col-span-1 lg:col-span-2 p-4 relative">
             <ul className="lg:absolute bottom-0 left-0">
-              <li className="font-semibold text-[28px]">Hello Rafi!</li>
+              <li className="font-semibold text-[28px]">Hello Abid!</li>
               <li className="text-figma-a_gray">
                 Track and manage your application from here
               </li>
