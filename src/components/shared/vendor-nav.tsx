@@ -28,6 +28,7 @@ export default function VendorNav() {
       await logoutUser({}).unwrap();
       // Clear auth cookie and Redux state
       helpers.removeAuthCookie(authKey);
+      helpers.removeStorageItem("auth_user");
       dispatch(clearAuth());
       router.push('/auth');
       toast.success("Logged out successfully!");
@@ -35,6 +36,7 @@ export default function VendorNav() {
       console.error("Logout error:", err);
       // Even if backend logout fails, clear local state
       helpers.removeAuthCookie(authKey);
+      helpers.removeStorageItem("auth_user");
       dispatch(clearAuth());
       router.push('/auth');
       toast.success("Logged out successfully!");

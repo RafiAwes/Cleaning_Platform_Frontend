@@ -8,7 +8,7 @@ import { EmailIcon, GoogleIcon, LockIcon, UserIcon } from "@/icon";
 import Form from "@/components/reusable/from";
 import SubTitle from "@/components/reusable/title";
 import { ArrowRight } from "lucide-react";
-import { register_sc } from "@/lib";
+import { register_customer_sc } from "@/lib";
 import Link from "next/link";
 import { useRegisterMutation } from "@/redux/api/authApi";
 import { useAppDispatch } from "@/redux/hooks";
@@ -22,8 +22,8 @@ export default function Register() {
   const dispatch = useAppDispatch();
   const [registerUser, { isLoading }] = useRegisterMutation();
   
-  const from = useForm({
-    resolver: zodResolver(register_sc),
+  const form = useForm({
+    resolver: zodResolver(register_customer_sc),
     defaultValues: {
       name: "",
       email: "",
@@ -61,7 +61,7 @@ export default function Register() {
   return (
     <div className="w-11/12 lg:max-w-4xl bg-secondary rounded-figma-sm p-5 lg:p-10 my-30 mx-auto">
       <SubTitle text="User Registration" svg={false} />
-      <Form className="space-y-4 pt-8" from={from} onSubmit={handleSubmit}>
+      <Form className="space-y-4 pt-8" from={form} onSubmit={handleSubmit}>
         <FromInput
           className="h-11"
           name="name"

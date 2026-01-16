@@ -139,16 +139,7 @@ const AccountSettings = () => {
             />
           </div>
 
-          <div className="flex justify-between mt-4">
-            <button
-              onClick={handleLogout}
-              className="cursor-pointer flex items-center gap-2 rounded-[10px] text-red-500 text-[18px] border border-red-500 p-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M17 11.27L16.82 11H7V9H16.82L17 8.73C17.2 8.37 17.63 8.22 18.05 8.39C18.47 8.57 18.7 9 18.6 9.46L18.17 12L18.6 14.54C18.7 15 18.47 15.43 18.05 15.61C17.63 15.78 17.2 15.63 17 15.27L16.82 15H7V13H16.82L17 12.73C17.2 12.37 17.63 12.22 18.05 12.39C17.63 12.22 17.2 12.07 17 11.73L17 11.27ZM15 21H5V3H15V7H13V5H7V19H13V17H15V21ZM16 11V15C16 16.1 15.1 17 14 17H9V19H14C16.21 19 18 17.21 18 15V9C18 6.79 16.21 5 14 5H9V7H14C15.1 7 16 7.9 16 9V11Z" fill="currentColor"/>
-              </svg>
-              Logout
-            </button>
+          <div className="flex justify-end mt-4">
             <Button type="submit" className="">
               Save Changes
             </Button>

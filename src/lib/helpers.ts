@@ -7,8 +7,13 @@ dayjs.extend(relativeTime);
 
 export class helpers {
   // ===== Cookies =====
-  static setAuthCookie(key: string, value: string): void {
-    Cookies.set(key, value);
+  static setAuthCookie(key: string, value: string, options?: { keepLoggedIn?: boolean }): void {
+    // Set cookie with different expiration based on 'Keep me logged in' preference
+    const cookieOptions = options?.keepLoggedIn 
+      ? { expires: 30, path: '/', sameSite: 'lax' } // 30 days if 'Keep me logged in' is checked
+      : { expires: 7, path: '/', sameSite: 'lax' }; // 7 days default
+    
+    Cookies.set(key, value, cookieOptions);
   }
 
   static getAuthCookie(key: string): string | undefined {

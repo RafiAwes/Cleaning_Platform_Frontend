@@ -19,38 +19,59 @@ export default function ProtectedRoute({
     const { user, isAuthenticated } = useAppSelector((state) => state.auth);
     const router = useRouter();
     const [checkedAuth, setCheckedAuth] = useState(false);
+    const [initialAuthCheck, setInitialAuthCheck] = useState(false);
+
+    useEffect(() => {
+        // Do initial synchronous check for token
+        const token = helpers.getAuthCookie("auth_token");
+        if (token) {
+            setInitialAuthCheck(true);
+        }
+    }, []);
 
     useEffect(() => {
         const checkAuth = async () => {
-            // Wait a bit for AuthInitializer to potentially update the state
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Check if user is authenticated
-            if (!isAuthenticated) {
-                // Check if we have stored credentials that might restore the auth state
-                const token = helpers.getAuthCookie("auth_token");
-                const storedUserStr = helpers.getStorageItem("auth_user");
-
-                if (token && storedUserStr) {
-                    // We have credentials stored, but auth state isn't initialized yet
-                    // Wait a bit more for the AuthInitializer to run
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                } else {
-                    // No stored credentials, definitely not authenticated
-                    router.push(redirectTo);
-                    setCheckedAuth(true);
-                    return;
-                }
+            // If we have a token but not authenticated yet, wait for AuthInitializer
+            if (initialAuthCheck && !isAuthenticated) {
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
 
-            // If allowed roles are specified, check if user's role is allowed
+            // Re-check authentication after waiting
+            const currentlyAuthenticated = isAuthenticated;
+            const token = helpers.getAuthCookie("auth_token");
+
+            // If still not authenticated after waiting, redirect
+            if (!currentlyAuthenticated && !token) {
+                router.push(redirectTo);
+                setCheckedAuth(true);
+                return;
+            }
+
+            // If we have a token but still not authenticated, wait a bit more
+            if (token && !currentlyAuthenticated) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            // Final check - if no token or not authenticated, redirect to login
+            const finalToken = helpers.getAuthCookie("auth_token");
+            const finalAuthState = isAuthenticated;
+            
+            if (!finalToken || !finalAuthState) {
+                router.push(redirectTo);
+                setCheckedAuth(true);
+                return;
+            }
+
+            // User is authenticated - now check if they have the required role
             if (allowedRoles && allowedRoles.length > 0) {
                 const userRole = user.role?.toLowerCase();
                 const hasAccess = allowedRoles.some(role => role.toLowerCase() === userRole);
 
                 if (!hasAccess) {
-                    // Redirect to home or unauthorized page if user doesn't have required role
+                    // Authenticated but wrong role - redirect to home
                     router.push('/');
+                    setCheckedAuth(true);
+                    return;
                 }
             }
 
@@ -58,25 +79,13 @@ export default function ProtectedRoute({
         };
 
         checkAuth();
-    }, [isAuthenticated, user.role, router, redirectTo, allowedRoles]);
+    }, [isAuthenticated, user.role, router, redirectTo, allowedRoles, initialAuthCheck]);
 
-    // Only render children if auth has been checked and user is authenticated and has required role
+    // Only render children if auth has been checked
     if (!checkedAuth) {
-        return <div className="flex items-center justify-center min-h-screen">Loading...</div>; // Show loading while checking auth status
+        return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
     }
 
-    if (!isAuthenticated) {
-        return null;
-    }
-
-    if (allowedRoles && allowedRoles.length > 0) {
-        const userRole = user.role?.toLowerCase();
-        const hasAccess = allowedRoles.some(role => role.toLowerCase() === userRole);
-
-        if (!hasAccess) {
-            return null;
-        }
-    }
-
+    // Already handled redirects in the effect, so just render children if we got here
     return <>{children}</>;
 }

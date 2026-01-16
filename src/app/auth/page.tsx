@@ -18,11 +18,14 @@ import { useLoginInMutation } from "@/redux/api/authApi";
 import { helpers } from "@/lib/helpers";
 import { authKey } from "@/lib/constants";
 import { toast } from "sonner";
+import { useState } from "react";
 
 export default function Login() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [loginUser, { isLoading }] = useLoginInMutation();
+  
+  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   
   const from = useForm({
     resolver: zodResolver(sign_In),
@@ -37,23 +40,22 @@ export default function Login() {
       const res = await loginUser(values).unwrap();
       
       if (res?.access_token) {
-        // Store the token in cookie
-        helpers.setAuthCookie(authKey, res.access_token);
-        
-        // Store user info in Redux
-        dispatch(setUser({
+        // Store the token once, respecting the keep-logged-in flag
+        helpers.setAuthCookie(authKey, res.access_token, { keepLoggedIn });
+
+        // Persist user for future sessions
+        const userPayload = {
           name: res.user.name,
           email: res.user.email,
           role: res.user.role,
           token: res.access_token,
-        }));
+        };
+        dispatch(setUser(userPayload));
+        helpers.setStorageItem("auth_user", JSON.stringify(userPayload));
         
         // Redirect based on user role
         if (res.user.role === 'vendor') {
           // Check if vendor has uploaded documents by making an API call
-          // Ensure the cookie is set before making the API call
-          helpers.setAuthCookie(authKey, res.access_token);
-          
           try {
             // Use axios directly to make the API call with the token
             const axios = (await import('axios')).default;
@@ -126,7 +128,11 @@ export default function Login() {
 
           <div className="flex items-center justify-between mt-2 text-sm">
             <div className="flex items-center space-x-2">
-              <Checkbox id="remember-me" />
+              <Checkbox 
+                id="remember-me" 
+                checked={keepLoggedIn}
+                onCheckedChange={(checked) => setKeepLoggedIn(!!checked)}
+              />
               <Label htmlFor="remember-me" className="font-normal">
                 Keep me logged in
               </Label>

@@ -18,6 +18,11 @@ import {
   FromTextArea,
   FromTextArea2,
 } from "@/components/reusable/from-textarea";
+import { useGetBookingsQuery, useRateBookingMutation } from "@/redux/api/bookingApi";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { TableSkeleton } from "@/components/reusable/table-skeleton";
+import { TableNoItem } from "@/components/reusable/table-no-item";
 
 type RatingType = "Poor" | "Good" | "Better" | "Best" | "Excellent";
 
@@ -115,6 +120,13 @@ const intState = {
 const BookingHistory = () => {
   const [reviewModal, setReviewModal] = useGlobalState(intState);
   const [selectedRating, setSelectedRating] = useState<number>(0);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+
+  // Fetch bookings from API
+  const { data: bookingsData, isLoading, error } = useGetBookingsQuery();
+  const [rateBooking, { isLoading: isRating }] = useRateBookingMutation();
+  
+  const bookings = bookingsData?.bookings || [];
 
   const from = useForm({
     resolver: zodResolver(new_review),
@@ -131,9 +143,25 @@ const BookingHistory = () => {
   };
 
   const handleSubmit = async (values: FieldValues) => {
-    // console.log(values);
-    // console.log("selected rating value", selectedRating);
-    from.reset();
+    if (!selectedBooking || selectedRating === 0) {
+      toast.error("Please select a rating");
+      return;
+    }
+    
+    try {
+      await rateBooking({
+        bookingId: selectedBooking.id.toString(),
+        rating: selectedRating,
+        note: values.message,
+      }).unwrap();
+      
+      toast.success("Rating submitted successfully");
+      setReviewModal("isAdd", false);
+      from.reset();
+      setSelectedRating(0);
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to submit rating");
+    }
   };
 
   return (
@@ -143,7 +171,22 @@ const BookingHistory = () => {
       </div>
 
       <PaymentTable>
-        {bookings?.map((item) => (
+        {isLoading ? (
+          <TableSkeleton colSpan={5} tdStyle="!pl-2" />
+        ) : error ? (
+          <TableNoItem
+            colSpan={5}
+            title="Failed to load bookings"
+            tdStyle="!bg-background"
+          />
+        ) : bookings.length === 0 ? (
+          <TableNoItem
+            colSpan={5}
+            title="No bookings found"
+            tdStyle="!bg-background"
+          />
+        ) : (
+          bookings.map((item: any) => (
           <TableRow key={item.id} className="">
             <TableCell className="font-medium">
               <div className="flex items-center gap-3">

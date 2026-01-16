@@ -25,7 +25,7 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<Partial<User>>) => {
       state.user = { ...state.user, ...action.payload };
-      state.isAuthenticated = true;
+      state.isAuthenticated = !!(action.payload.token || state.user.token);
     },
     clearAuth: (state) => {
       state.user = { name: "", email: "", role: "", token: "", email_verified_at: null };

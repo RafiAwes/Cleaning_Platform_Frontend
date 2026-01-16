@@ -36,18 +36,25 @@ const axiosBaseQuery =
       // Use 'body' if provided (RTK Query pattern), otherwise use 'data'
       const requestData = body !== undefined ? body : data;
       
+      // Build headers object
+      const requestHeaders: any = {
+        // Only set Content-Type if not using FormData
+        ...(requestData instanceof FormData ? {} : { "Content-Type": ContentType || "application/json" }),
+        ...headers,
+      };
+      
+      // Only add Authorization header if token exists
+      if (token) {
+        requestHeaders.Authorization = `Bearer ${token}`;
+      }
+      
       const result = await axios({
         url: baseUrl + url,
         method,
         data: requestData,
         params,
         onUploadProgress,
-        headers: {
-          // Only set Content-Type if not using FormData
-          ...(requestData instanceof FormData ? {} : { "Content-Type": ContentType || "application/json" }),
-          Authorization: `Bearer ${token}`,
-          ...headers,
-        },
+        headers: requestHeaders,
       });
       return { data: result.data };
     } catch (axiosError) {

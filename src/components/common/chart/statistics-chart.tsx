@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
+const defaultData = [
   { day: "Sun", value: 99 },
   { day: "Mon", value: 10 },
   { day: "Tue", value: 73 },
@@ -20,7 +20,8 @@ const data = [
   { day: "Sat", value: 18 },
 ];
 
-export function VenStatisticsCh({ className }: any) {
+export function VenStatisticsCh({ className, data }: { className?: string; data?: { day: string; value: number }[] }) {
+  const chartData = data && data.length ? data : defaultData;
   return (
     <div
       className={cn(
@@ -29,12 +30,12 @@ export function VenStatisticsCh({ className }: any) {
       )}
     >
       <ResponsiveContainer width="100%" height={400}>
-        <RechartsRadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
+        <RechartsRadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
           <PolarGrid stroke="#d1d1d6" />
           <PolarAngleAxis
             dataKey="day"
             tick={({ payload, x, y, textAnchor, ...rest }) => {
-              const item = data.find((d) => d.day === payload.value);
+              const item = chartData.find((d) => d.day === payload.value);
               return (
                 <g>
                   <text

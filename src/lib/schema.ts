@@ -15,6 +15,17 @@ export const sign_In = z.object({
     .min(6, "Password must be at least 6 characters long"),
 });
 
+//  === sign_Up customer ===
+export const register_customer_sc = sign_In
+  .extend({
+    name: z.string().nonempty("Full Name is required"),
+    c_password: z.string().nonempty("Confirm password is required"),
+  })
+  .refine((value) => value.password === value.c_password, {
+    path: ["c_password"],
+    message: "Passwords must be match.",
+  });
+
 //  === sign_Up  ===
 export const register_sc = sign_In
   .extend({
@@ -122,10 +133,13 @@ export const package_store = z.object({
   title: z.string().nonempty("Title is required"),
   price: z.string().nonempty("Price is required"),
   about: z.string().nonempty("About is required"),
-  image: z.any().refine((file) => file instanceof File, {
-    message: "Image is required",
-  }),
-  services: z.array(z.string()).nonempty("Services is required"),
+  image: z.any().optional().refine((file) => file instanceof File || file === null, {
+    message: "Image must be a valid file or null",
+    // Only validate if file is not null
+    params: { required_error: "Image is required" }
+  }).transform((val) => val === undefined ? null : val),
+  // Services are managed outside RHF; allow any to avoid blocking submit
+  services: z.any().optional(),
 });
 
 export const set_store = z.object({

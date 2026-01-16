@@ -17,6 +17,9 @@ import Modal from "@/components/reusable/modal";
 import FavIcon from "@/favicon/favicon";
 import { ImgBox } from "@/components/reusable/Img-box";
 import { ApproveVendorReqIcon, DeleteVendorReqIcon } from "@/icon";
+import { useGetPendingVendorsQuery, useApproveVendorMutation, useRejectVendorMutation } from "@/redux/api/adminApi";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const data = [
   {
@@ -160,17 +163,55 @@ const intState = {
 export default function VendorRequests() {
   const { confirm } = useConfirmation();
   const [global, updateGlobal] = useGlobalState(intState);
+  const [selectedVendor, setSelectedVendor] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const headers = ["Name", "Email", "Address", "Action"];
-  const isLoading = false;
-
-  const handleDelete = async (id: any) => {
+  
+  // Fetch pending vendors from API
+  const { data: vendorsData, isLoading, error } = useGetPendingVendorsQuery();
+  const [approveVendor] = useApproveVendorMutation();
+  const [rejectVendor] = useRejectVendorMutation();
+  
+  const vendors = vendorsData?.vendors || [];
+  
+  // Filter vendors based on search
+  const filteredVendors = searchQuery 
+    ? vendors.filter((v: any) => 
+        v.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.user?.email?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : vendors;
+  
+  const handleApprove = async (vendorId: number) => {
     const confirmed = await confirm({
-      title: "Delete Vendor Request?",
-      description:
-        "You are going to delete this vendor request. After deleting, this vendor request will no longer available in your platform",
+      title: "Approve Vendor?",
+      description: "This vendor will be approved and can start offering services.",
     });
     if (confirmed) {
-      console.log(id);
+      try {
+        await approveVendor(vendorId.toString()).unwrap();
+        toast.success("Vendor approved successfully");
+        updateGlobal("isPreview", false);
+      } catch (error: any) {
+        toast.error(error?.data?.message || "Failed to approve vendor");
+      }
+    }
+  };
+  
+  const handleReject = async (vendorId: number) => {
+    const confirmed = await confirm({
+      title: "Reject Vendor Request?",
+      description: "This vendor request will be rejected and removed from the system.",
+    });
+    if (confirmed) {
+      try {
+        await rejectVendor(vendorId.toString()).unwrap();
+        toast.success("Vendor rejected successfully");
+        updateGlobal("isPreview", false);
+      } catch (error: any) {
+        toast.error(error?.data?.message || "Failed to reject vendor");
+      }
     }
   };
   return (
@@ -182,7 +223,7 @@ export default function VendorRequests() {
       <div className="flex flex-wrap space-y-3 lg:space-y-0 mt-2 items-center justify-between">
         <SearchBox
           placeholder="Search Vendor"
-          onChange={(e) => console.log(e)}
+          onChange={(e) => setSearchQuery(e)}
         />
         <div className="flex gap-2">
           <Link href="/admin/vendors/requests">
@@ -200,7 +241,7 @@ export default function VendorRequests() {
             <li className="flex">
               Total:
               <sup className="font-medium text-2xl relative -top-3 px-2 ">
-                500
+                {filteredVendors.length}
               </sup>
               vendors
             </li>
@@ -215,40 +256,52 @@ export default function VendorRequests() {
       >
         {isLoading ? (
           <TableSkeleton colSpan={headers?.length} tdStyle="!pl-2" />
-        ) : data?.length > 0 ? (
-          data?.map((item, index) => (
-            <TableRow key={index} className="border">
+        ) : error ? (
+          <TableNoItem
+            colSpan={headers?.length}
+            title="Failed to load vendor requests"
+            tdStyle="!bg-background"
+          />
+        ) : filteredVendors?.length > 0 ? (
+          filteredVendors?.map((vendor: any, index: number) => (
+            <TableRow key={vendor.id || index} className="border">
               <TableCell className="relative">
                 <div className="flex items-center gap-3">
                   <Avatars
-                    src={""}
-                    fallback={item.name}
+                    src={vendor.user?.profile_picture || ""}
+                    fallback={vendor.user?.name || "Vendor"}
                     alt="profile"
                     fallbackStyle="aStyle"
                   />
-                  <span>{item.name}</span>
+                  <span>{vendor.user?.name || "N/A"}</span>
                 </div>
               </TableCell>
-              <TableCell>{item.email}</TableCell>
+              <TableCell>{vendor.user?.email || "N/A"}</TableCell>
               <TableCell>
                 {" "}
-                <h5>{item.address}</h5>
+                <h5>{vendor.address || "No address provided"}</h5>
               </TableCell>
 
               <TableCell>
                 <ul className="flex gap-2">
                   <li>
                     <PreviewBtn
-                      onClick={() => updateGlobal("isPreview", true)}
+                      onClick={() => {
+                        setSelectedVendor(vendor);
+                        updateGlobal("isPreview", true);
+                      }}
                     />
                   </li>
                   <li>
-                    <Button className="bg-secondary size-10">
+                    <Button 
+                      className="bg-secondary size-10"
+                      onClick={() => handleApprove(vendor.id)}
+                    >
                       <Check className="size-5 text-[#2D9D1E]" />
                     </Button>
                   </li>
                   <li>
-                    <DeleteBtn onClick={() => handleDelete("4343")} />
+                    <DeleteBtn onClick={() => handleReject(vendor.id)} />
                   </li>
                 </ul>
               </TableCell>
@@ -262,49 +315,61 @@ export default function VendorRequests() {
           />
         )}
       </CustomTable>
-      {/*  ================= is preview ============= */}
-      <Modal
-        open={global.isPreview}
-        setIsOpen={(value) => updateGlobal("isPreview", value)}
-        title="User Details"
-        titleStyle="text-center"
-        className="sm:max-w-xl"
-      >
-        <div className="space-y-6">
-          <div className="border flex justify-between bg-secondary border-none items-center rounded-xl px-2 py-3">
-            <div className="flex items-center space-x-2">
-              <Avatars
-                src={""}
-                fallback={"T"}
+      {/*  ==========selectedVendor?.user?.profile_picture || ""}
+                fallback={selectedVendor?.user?.name?.[0] || "V"}
                 alt="profile"
                 fallbackStyle="aStyle"
               />
               <div className="leading-5">
-                <h1 className="font-semibold text-lg">Elizabeth Olson</h1>
-                <h1 className="text-secondery-figma">example@gmail.com</h1>
+                <h1 className="font-semibold text-lg">{selectedVendor?.user?.name || "N/A"}</h1>
+                <h1 className="text-secondery-figma">{selectedVendor?.user?.email || "N/A"}</h1>
               </div>
             </div>
           </div>
           <div className="border flex justify-between bg-secondary border-none items-center rounded-xl px-2 py-5">
             <h1 className="flex items-center space-x-2">
               <FavIcon name="bug_cc_sm" />
-              <span className="ml-px">Business name goes here</span>
+              <span className="ml-px">{selectedVendor?.business_name || "Business name not provided"}</span>
             </h1>
           </div>
           <div className="border flex justify-between bg-secondary border-none items-center rounded-xl px-2 py-5">
             <h1 className="flex items-center space-x-2">
               <FavIcon name="location_cc" />
               <span className="ml-px">
-                70 Washington Square South, New York, NY 10012, United States
+                {selectedVendor?.address || "No address provided"}
               </span>
             </h1>
           </div>
-          <div className="flex flex-col md:flex-row items-center gap-2">
-            <ImgBox
-              src={"/images/vendor-request1.png"}
-              alt="vendor request photo"
-              className="w-full md:w-[50%] h-[130px] rounded-figma-sm!"
-            />
+          {selectedVendor?.documents_info && (
+            <div className="flex flex-col md:flex-row items-center gap-2">
+              {selectedVendor.documents_info.nid_url && (
+                <ImgBox
+                  src={selectedVendor.documents_info.nid_url}
+                  alt="NID document"
+                  className="w-full md:w-[50%] h-[130px] rounded-figma-sm!"
+                />
+              )}
+              {selectedVendor.documents_info.pob_url && (
+                <ImgBox
+                  src={selectedVendor.documents_info.pob_url}
+                  alt="Proof of business"
+                  className="w-full md:w-[50%] h-[130px] rounded-figma-sm!"
+                />
+              )}
+            </div>
+          )}
+          <div className=" flex flex-col md:flex-row items-center gap-2 ">
+            <button 
+              onClick={() => selectedVendor && handleReject(selectedVendor.id)}
+              className="cursor-pointer w-full md:w-[50%] flex items-center justify-center gap-2 h-12 text-white bg-[#FF5445] rounded-[10px]"
+            >
+              <DeleteVendorReqIcon />
+              Decline
+            </button>
+            <button 
+              onClick={() => selectedVendor && handleApprove(selectedVendor.id)}
+              className="cursor-pointer w-full md:w-[50%] h-12 flex items-center justify-center gap-2 text-white bg-[#2D9D1E] rounded-[10px]"
+            
             <ImgBox
               src={"/images/vendor-request2.png"}
               alt="vendor request photo"

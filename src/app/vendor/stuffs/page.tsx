@@ -1,5 +1,12 @@
 "use client";
-import { dummyJson } from "@/components/dummy-json";
+
+import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, X } from "lucide-react";
+import { toast } from "sonner";
+import { FieldValues, useForm } from "react-hook-form";
+
 import Avatars from "@/components/reusable/avater";
 import { DeleteBtn, EditBtn, PreviewBtn } from "@/components/reusable/btn";
 import { FromInput } from "@/components/reusable/form-input";
@@ -10,192 +17,19 @@ import { TableNoItem } from "@/components/reusable/table-no-item";
 import { TableSkeleton } from "@/components/reusable/table-skeleton";
 import { VendorTable } from "@/components/reusable/vendor-table";
 import { Button, Label, TableCell, TableRow } from "@/components/ui";
+import { Badge } from "@/components/ui/badge";
+import SearchBox from "@/components/common/super-dash/reuse/search-box";
 import { useModalState } from "@/hooks";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { helpers, PlaceholderImg } from "@/lib";
 import useConfirmation from "@/provider/confirmation";
-import { Plus, X } from "lucide-react";
-import { FieldValues, useForm } from "react-hook-form";
-import { ImgBox } from "@/components/reusable/Img-box";
-import SearchBox from "@/components/common/super-dash/reuse/search-box";
-import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
 import profile from "@/assets/profile.png";
-import Link from "next/link";
-import { EditStuff } from "@/components/common/edit-stuff";
-
-const data = [
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-    address: "New York, NY 10001",
-    status: "assigned",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-    address: "New York, NY 10001",
-    status: "assigned",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-    address: "New York, NY 10001",
-    status: "available",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-    address: "New York, NY 10001",
-    status: "available",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-    address: "New York, NY 10001",
-    status: "available",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-    address: "New York, NY 10001",
-    status: "assigned",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-    address: "New York, NY 10001",
-    status: "available",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-    address: "New York, NY 10001",
-    status: "available",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-    address: "New York, NY 10001",
-    status: "assigned",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-    address: "New York, NY 10001",
-    status: "available",
-  },
-];
+import {
+  useAddCleanerMutation,
+  useDeleteCleanerMutation,
+  useGetCleanersQuery,
+  useUpdateCleanerMutation,
+} from "@/redux/api/vendorApi";
 
 const intState = {
   isAdd: false,
@@ -205,10 +39,28 @@ const intState = {
 
 export default function Stuffs() {
   const [state, setState] = useModalState(intState);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [selectedCleaner, setSelectedCleaner] = useState<any>(null);
   const { confirm } = useConfirmation();
   const headers = ["Stuff Name", "Phone Number", "Address", "Status", "Action"];
 
-  const isLoading = false;
+  const { data, isLoading, isFetching, error } = useGetCleanersQuery({ page });
+  const [addCleaner, { isLoading: isAdding }] = useAddCleanerMutation();
+  const [updateCleaner, { isLoading: isUpdating }] = useUpdateCleanerMutation();
+  const [deleteCleaner] = useDeleteCleanerMutation();
+
+  const cleanersResponse = data?.cleaners;
+  const cleaners = cleanersResponse?.data || cleanersResponse || [];
+  const paginationMeta = cleanersResponse?.meta || cleanersResponse || {};
+
+  const filteredCleaners = useMemo(() => {
+    if (!search) return cleaners;
+    return cleaners.filter((c: any) =>
+      c?.name?.toLowerCase().includes(search.toLowerCase()) ||
+      c?.phone?.toLowerCase?.().includes(search.toLowerCase())
+    );
+  }, [cleaners, search]);
 
   const handleDelete = async (id: any) => {
     const confirmed = await confirm({
@@ -216,10 +68,60 @@ export default function Stuffs() {
       description:
         "You are going to delete this Stuffs. After deleting, this Stuffs will no longer available in your platform",
     });
-    if (confirmed) {
-      console.log(id);
+    if (!confirmed) return;
+
+    try {
+      await deleteCleaner(id).unwrap();
+      toast.success("Cleaner deleted successfully");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to delete cleaner");
     }
   };
+
+  const handleAdd = async (values: FieldValues, file?: File) => {
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("phone", values.phone);
+    if (values.address) {
+      formData.append("address", values.address);
+    }
+    formData.append("status", "active");
+    if (file) {
+      formData.append("image", file);
+    }
+
+    try {
+      await addCleaner(formData).unwrap();
+      toast.success("Cleaner added successfully");
+      setState("isAdd", false);
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to add cleaner");
+    }
+  };
+
+  const handleUpdate = async (values: FieldValues, file?: File) => {
+    if (!selectedCleaner) return;
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("phone", values.phone);
+    if (values.address) {
+      formData.append("address", values.address);
+    }
+    formData.append("status", values.status || selectedCleaner.status || "active");
+    if (file) {
+      formData.append("image", file);
+    }
+
+    try {
+      await updateCleaner({ id: selectedCleaner.id, formData }).unwrap();
+      toast.success("Cleaner updated successfully");
+      setState("isEdit", false);
+      setSelectedCleaner(null);
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update cleaner");
+    }
+  };
+
   return (
     <div className="container mt-5">
       <div>
@@ -227,7 +129,13 @@ export default function Stuffs() {
           <li>
             <SearchBox
               className="rounded-md lg:min-w-xl!"
-              onChange={(v) => console.log(v)}
+              onChange={(v: any) =>
+                setSearch(
+                  typeof v === "string"
+                    ? v
+                    : (v?.target as HTMLInputElement | undefined)?.value || ""
+                )
+              }
               placeholder="Search by stuff name"
               leftBtn={true}
               rightBtn={false}
@@ -251,60 +159,67 @@ export default function Stuffs() {
             <li className="flex">
               Total:
               <sup className="font-medium text-2xl relative -top-3 px-2 ">
-                500
+                {paginationMeta?.total ?? filteredCleaners?.length ?? 0}
               </sup>
               Shifts
             </li>
             <li>
               <Pagination
-                onPageChange={(v: any) => console.log("")}
-                {...dummyJson.meta}
+                onPageChange={(v: any) => setPage(v)}
+                {...paginationMeta}
               />
             </li>
           </ul>
         }
       >
-        {isLoading ? (
+        {isLoading || isFetching ? (
           <TableSkeleton colSpan={headers?.length} tdStyle="!pl-2" />
-        ) : data?.length > 0 ? (
-          data?.map((item, index) => (
+        ) : error ? (
+          <TableNoItem
+            colSpan={headers?.length}
+            title="Failed to load staffs"
+            tdStyle="!bg-background"
+          />
+        ) : filteredCleaners?.length > 0 ? (
+          filteredCleaners?.map((item: any, index: number) => (
             <TableRow key={index} className="border">
               <TableCell className="relative">
                 <div className="flex items-center gap-3">
                   <Avatars
-                    src={""}
-                    fallback={item.userName}
+                    src={item.image ? `${process.env.NEXT_PUBLIC_API_URL}/storage/${item.image}` : ""}
+                    fallback={item.name}
                     alt="profile"
                     fallbackStyle="aStyle"
                   />
                   <div>
-                    <h1 className="text-lg">{item.userName}</h1>
+                    <h1 className="text-lg">{item.name}</h1>
                   </div>
                 </div>
               </TableCell>
               <TableCell>
-                <h1 className="ml-5">{item.assigned.phone}</h1>
+                <h1 className="ml-5">{item.phone || "N/A"}</h1>
               </TableCell>
-              <TableCell>{item.address}</TableCell>
+              <TableCell>{item.address || "N/A"}</TableCell>
               <TableCell>
-                {
-                  <Badge variant={helpers.lowerCase(item.status) as any}>
-                    {helpers.capitalize(item.status)}
-                  </Badge>
-                }
+                <Badge variant={helpers.lowerCase(item.status || "active") as any}>
+                  {helpers.capitalize(item.status || "active")}
+                </Badge>
               </TableCell>
               <TableCell>
                 <div className="flex items-center space-x-3">
-                  <Link href={`/vendor/stuffs/123`}>
+                  <Link href={`/vendor/stuffs/${item.id}`}>
                     <PreviewBtn className="bg-white" />
                   </Link>
                   <EditBtn
-                    onClick={() => setState("isEdit", true)}
+                    onClick={() => {
+                      setSelectedCleaner(item);
+                      setState("isEdit", true);
+                    }}
                     color="#000"
                     className="bg-white"
                   />
                   <DeleteBtn
-                    onClick={() => handleDelete("12345")}
+                    onClick={() => handleDelete(item.id)}
                     className="bg-white"
                   />
                 </div>
@@ -333,7 +248,7 @@ export default function Stuffs() {
         >
           <X />
         </div>
-        <AddNewStuff />
+        <StaffForm onSubmit={handleAdd} isSubmitting={isAdding} />
       </Modal2>
       {/*  =========== ProductDetails =============== */}
       <Modal2
@@ -349,34 +264,52 @@ export default function Stuffs() {
         >
           <X />
         </div>
-        <EditStuff />
+        <StaffForm
+          onSubmit={handleUpdate}
+          isSubmitting={isUpdating}
+          defaultValues={selectedCleaner}
+        />
       </Modal2>
     </div>
   );
 }
 
-//  =====================  AddNewProduct ===============
-function AddNewStuff() {
-  const [{ files }, { getInputProps, openFileDialog, clearFiles }] =
-    useFileUpload({
-      accept: "image/*",
-    });
+//  =====================  Shared Staff Form ===============
+function StaffForm({
+  onSubmit,
+  isSubmitting,
+  defaultValues,
+}: {
+  onSubmit: (values: FieldValues, file?: File) => Promise<void> | void;
+  isSubmitting?: boolean;
+  defaultValues?: any;
+}) {
+  const [{ files }, { getInputProps, clearFiles }] = useFileUpload({
+    accept: "image/*",
+  });
 
   const form = useForm({
     defaultValues: {
-      name: "",
-      phone: "",
-      address: "",
+      name: defaultValues?.name || "",
+      phone: defaultValues?.phone || "",
+      address: defaultValues?.address || "",
+      status: defaultValues?.status || "active",
     },
   });
 
-  const handleProfileSubmit = async (values: FieldValues) => {
-    const value = {
-      name: values.name,
-      ...(files[0]?.file && { image: files[0]?.file }),
-    };
+  useEffect(() => {
+    form.reset({
+      name: defaultValues?.name || "",
+      phone: defaultValues?.phone || "",
+      address: defaultValues?.address || "",
+      status: defaultValues?.status || "active",
+    });
+    clearFiles();
+  }, [defaultValues, form, clearFiles]);
 
-    console.log("Submitted Data:", value);
+  const handleProfileSubmit = async (values: FieldValues) => {
+    const file = files[0]?.file as File | undefined;
+    await onSubmit(values, file);
   };
 
   return (
@@ -420,12 +353,16 @@ function AddNewStuff() {
         placeholder="Stuff address"
         className="h-11 rounded-xl bg-secondary placeholder:text-muted-foreground"
       />
+      <FromInput
+        label="Status"
+        name="status"
+        placeholder="Status"
+        className="h-11 rounded-xl bg-secondary placeholder:text-muted-foreground"
+      />
 
-      <Button size="lg" className="rounded-md w-full" type="submit">
-        Add
+      <Button size="lg" className="rounded-md w-full" type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Saving..." : "Save"}
       </Button>
     </Form>
   );
 }
-
-//  =====================  ProductDetails ===============

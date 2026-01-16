@@ -11,6 +11,8 @@ import Avatars from "@/components/reusable/avater";
 import { useMemo, useState } from "react";
 import FavIcon from "@/favicon/favicon";
 import Link from "next/link";
+import { useGetVendorBookingsQuery } from "@/redux/api/bookingApi";
+import { format } from "date-fns";
 
 const headersConfig: Record<string, string[]> = {
   New: ["Order details", "User details", "Order time", ""],
@@ -176,8 +178,29 @@ const data = [
 export default function Bookings() {
   const [activeTab, setActiveTab] = useState<string>("New");
   const headers = useMemo(() => headersConfig[activeTab], [activeTab]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const isLoading = false;
+  // Fetch vendor bookings from API
+  const { data: bookingsData, isLoading, error } = useGetVendorBookingsQuery();
+  
+  // Filter bookings by status based on active tab
+  const filteredBookings = useMemo(() => {
+    if (!bookingsData?.bookings) return [];
+    setSearchQuery
+    const statusMap: Record<string, string[]> = {
+      "New": ["new"],
+      "Pending": ["pending", "accepted"],
+      "Completed": ["completed"]
+    };
+    
+    return bookingsData.bookings.filter((booking: any) => {
+      const matchesStatus = statusMap[activeTab]?.includes(booking.status.toLowerCase());
+      const matchesSearch = searchQuery === "" || 
+        booking.package?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        booking.customer?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [bookingsData, activeTab, searchQuery]);
 
   return (
     <div className="container">
@@ -207,7 +230,7 @@ export default function Bookings() {
             <li className="flex">
               Total:
               <sup className="font-medium text-2xl relative -top-3 px-2 ">
-                500
+                {filteredBookings?.length || 0}
               </sup>
               orders
             </li>
@@ -222,52 +245,62 @@ export default function Bookings() {
       >
         {isLoading ? (
           <TableSkeleton colSpan={headers?.length} tdStyle="!pl-2" />
-        ) : data?.length > 0 ? (
-          data?.map((item, index) => (
-            <TableRow key={index} className="border">
+        ) : error ? (
+          <TableNoItem
+            colSpan={headers?.length}
+            title="Failed to load bookings"
+            tdStyle="!bg-background"
+          />
+        ) : filteredBookings?.length > 0 ? (
+          filteredBookings?.map((booking: any, index: number) => (
+            <TableRow key={booking.id || index} className="border">
               <TableCell>
                 <div className="flex">
                   <IconBox className="m-0">
                     <FavIcon className="size-5" name="bookings_cc" />
                   </IconBox>
                   <div className="ml-2">
-                    <p>{item.service}</p>
-                    <p className="text-xl font-semibold">{item.price}</p>
+                    <p>{booking.package?.title || "Custom Service"}</p>
+                    <p className="text-xl font-semibold">${booking.total_price || 0}</p>
                   </div>
                 </div>
               </TableCell>
               <TableCell className="relative">
                 <div className="flex items-center gap-3">
                   <Avatars
-                    src={""}
-                    fallback={item.userName}
+                    src={booking.customer?.profile_picture || ""}
+                    fallback={booking.customer?.name || "Customer"}
                     alt="profile"
                     fallbackStyle="aStyle"
                   />
                   <div>
-                    <h1 className="text-lg">{item.userName}</h1>
-                    <h1 className="text-figma-gray">{item.userEmail}</h1>
+                    <h1 className="text-lg">{booking.customer?.name || "N/A"}</h1>
+                    <h1 className="text-figma-gray">{booking.customer?.email || "N/A"}</h1>
                   </div>
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center">
                   <FavIcon name="calender_cc" />
-                  <span className="text-figma-gray ml-1">{item.dateTime}</span>
+                  <span className="text-figma-gray ml-1">
+                    {booking.booking_date_time 
+                      ? format(new Date(booking.booking_date_time), "do MMM, yyyy 'at' hh:mm a")
+                      : "N/A"}
+                  </span>
                 </div>
               </TableCell>
               {activeTab === "Pending" && (
                 <TableCell className="relative">
                   <div className="flex items-center gap-3">
                     <Avatars
-                      src={""}
-                      fallback={item.assigned.name}
+                      src={booking.cleaner?.image || ""}
+                      fallback={booking.cleaner?.name || "Unassigned"}
                       alt="profile"
                       fallbackStyle="aStyle"
                     />
                     <div>
-                      <h1 className="text-lg">{item.assigned.name}</h1>
-                      <h1 className="text-figma-gray">{item.assigned.phone}</h1>
+                      <h1 className="text-lg">{booking.cleaner?.name || "Not assigned"}</h1>
+                      <h1 className="text-figma-gray">{booking.cleaner?.phone || "N/A"}</h1>
                     </div>
                   </div>
                 </TableCell>
@@ -276,13 +309,13 @@ export default function Bookings() {
                 <TableCell className="relative">
                   <h1 className="border flex w-fit py-1  space-x-2 px-3 rounded-md">
                     <FavIcon name="rating_value" />
-                    <span> 5.6</span>
+                    <span> {booking.rating || "N/A"}</span>
                   </h1>
                 </TableCell>
               )}
 
               <TableCell>
-                <Link href="/vendor/bookings/873284">
+                <Link href={`/vendor/bookings/${booking.id}`}>
                   <FavIcon name="arrow_right_cc" />
                 </Link>
               </TableCell>

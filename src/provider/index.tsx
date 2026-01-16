@@ -4,12 +4,14 @@ import { Toaster } from "sonner";
 import { Provider as ReduxProvider } from "react-redux";
 import { makeStore } from "@/redux/store";
 import { ConfirmDialogProvider } from "./confirmation";
+import { AuthInitializer } from "./auth-initializer";
 
 export default function Provider({ children }: childrenProps) {
   const store = makeStore();
   return (
     <ConfirmDialogProvider>
       <ReduxProvider store={store}>
+        <AuthInitializer />
         {children}
         <Toaster
           toastOptions={{

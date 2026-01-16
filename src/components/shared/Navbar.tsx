@@ -28,6 +28,7 @@ const Navbar = () => {
       await logoutUser({}).unwrap();
       // Clear auth cookie and Redux state
       helpers.removeAuthCookie(authKey);
+      helpers.removeStorageItem("auth_user");
       dispatch(clearAuth());
       router.push('/auth');
       toast.success("Logged out successfully!");
@@ -35,6 +36,7 @@ const Navbar = () => {
       console.error("Logout error:", err);
       // Even if backend logout fails, clear local state
       helpers.removeAuthCookie(authKey);
+      helpers.removeStorageItem("auth_user");
       dispatch(clearAuth());
       router.push('/auth');
       toast.success("Logged out successfully!");
@@ -116,7 +118,7 @@ const Navbar = () => {
                 </Link>
 
                 <div className="relative">
-                  <div className="flex items-center gap-3 cursor-pointer group">
+                  <Link href="/account" className="flex items-center gap-3 cursor-pointer group">
                     <Image
                       src={assets.LoginUserPhoto}
                       alt="user photo"
@@ -128,7 +130,7 @@ const Navbar = () => {
                       <p className="font-semibold">{user.name || "User"}</p>
                       <p>{user.email}</p>
                     </div>
-                  </div>
+                  </Link>
                                   
                   {/* Dropdown menu */}
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
@@ -248,7 +250,7 @@ const Navbar = () => {
                   </Link>
 
                   <div className="relative">
-                    <div className="flex items-center gap-3 rounded-md p-1 cursor-pointer">
+                    <Link href="/account" onClick={toggleMenu} className="flex items-center gap-3 rounded-md p-1 cursor-pointer">
                       <Image
                         src={assets.LoginUserPhoto}
                         alt="user photo"
@@ -256,8 +258,8 @@ const Navbar = () => {
                         height={40}
                         className="w-[40px] h-[40px] rounded-[6px]"
                       />
-                    </div>
-                                    
+                    </Link>
+                                                       
                     {/* Mobile dropdown menu */}
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                       <Link href="/account" onClick={toggleMenu} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">

@@ -1,5 +1,9 @@
 "use client";
-import { dummyJson } from "@/components/dummy-json";
+import { useState, useMemo } from "react";
+import { Plus, X } from "lucide-react";
+import { toast } from "sonner";
+import { FieldValues, useForm } from "react-hook-form";
+
 import Avatars from "@/components/reusable/avater";
 import { DeleteBtn, PreviewBtn } from "@/components/reusable/btn";
 import { FromInput } from "@/components/reusable/form-input";
@@ -14,164 +18,15 @@ import { Button, Label, TableCell, TableRow } from "@/components/ui";
 import FavIcon from "@/favicon/favicon";
 import { useModalState } from "@/hooks";
 import { useFileUpload } from "@/hooks/useFileUpload";
-import { PlaceholderImg } from "@/lib";
+import { PlaceholderImg, helpers } from "@/lib";
 import useConfirmation from "@/provider/confirmation";
-import { Plus, X } from "lucide-react";
-import { FieldValues, useForm } from "react-hook-form";
 import { ImgBox } from "@/components/reusable/Img-box";
-
-const data = [
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-  },
-  {
-    service: "House cleaning service for residential areas in New York City.",
-    price: "$250",
-    avatar: "/images/avatar.png",
-    userName: "John Doe",
-    userEmail: "example@gmail.com",
-    dateTime: "10th Nov, 2025 at 05:30 PM",
-    actionLink: true,
-    assigned: {
-      name: "John Doe",
-      avatar: "/images/avatar.png",
-      phone: "+564289653541",
-    },
-    quantity: "5",
-  },
-];
+import {
+  useGetInventoryQuery,
+  useAddInventoryMutation,
+  useUpdateInventoryMutation,
+  useDeleteInventoryMutation,
+} from "@/redux/api/vendorApi";
 
 const intState = {
   isAdd: false,
@@ -180,21 +35,60 @@ const intState = {
 
 export default function Inventory() {
   const [state, setState] = useModalState(intState);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState("all");
   const { confirm } = useConfirmation();
-  const headers = ["Product", "Quantity", "Last updated", "Action"];
 
-  const isLoading = false;
+  const { data, isLoading } = useGetInventoryQuery({ page });
+  const [deleteInventory] = useDeleteInventoryMutation();
+
+  const headers = ["Product", "Quantity", "Status", "Last Updated", "Action"];
+
+  const inventory = data?.inventory?.data || [];
+  const paginationMeta = data?.inventory?.meta || {};
+
+  const filteredInventory = useMemo(() => {
+    let filtered = inventory;
+
+    if (search) {
+      filtered = filtered.filter((item: any) =>
+        item.product_name?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    if (filter !== "all") {
+      const statusMap: Record<string, string> = {
+        out_of_stock: "Out of stock",
+        huge_quantity: "Huge quantity",
+        medium_quantity: "Medium",
+        very_low_quantity: "Very low",
+      };
+      filtered = filtered.filter(
+        (item: any) => item.stock_status === statusMap[filter]
+      );
+    }
+
+    return filtered;
+  }, [inventory, search, filter]);
 
   const handleDelete = async (id: any) => {
     const confirmed = await confirm({
-      title: "Delete Inventory ?",
+      title: "Delete Product?",
       description:
-        "You are going to delete this Inventory. After deleting, this Inventory will no longer available in your platform",
+        "You are going to delete this product. After deleting, this product will no longer be available in your inventory",
     });
-    if (confirmed) {
-      console.log(id);
+    if (!confirmed) return;
+
+    try {
+      await deleteInventory(id).unwrap();
+      toast.success("Product deleted successfully");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to delete product");
     }
   };
+
   return (
     <div className="container mt-5">
       <div>
@@ -203,9 +97,10 @@ export default function Inventory() {
           <li className="text-xl font-semibold">Inventory Management</li>
           <li className="flex items-center gap-5">
             <SelectBox
+              defaultValue={filter}
+              onChange={(value) => setFilter(value)}
               placeholder="Filter"
               icon={true}
-              defaultValue="all"
               options={[
                 { label: "All", value: "all" },
                 { label: "Out of stock", value: "out_of_stock" },
@@ -231,6 +126,7 @@ export default function Inventory() {
           </li>
         </ul>
       </div>
+
       <VendorTable
         headers={headers}
         pagination={
@@ -238,34 +134,39 @@ export default function Inventory() {
             <li className="flex">
               Total:
               <sup className="font-medium text-2xl relative -top-3 px-2 ">
-                500
+                {paginationMeta.total || 0}
               </sup>
-              Inventory
+              Products
             </li>
             <li>
-              <Pagination
-                onPageChange={(v: any) => console.log("")}
-                {...dummyJson.meta}
-              />
+              {paginationMeta.last_page && (
+                <Pagination
+                  onPageChange={(v: any) => setPage(v)}
+                  currentPage={paginationMeta.current_page || 1}
+                  lastPage={paginationMeta.last_page || 1}
+                  from={paginationMeta.from || 1}
+                  to={paginationMeta.to || 10}
+                  total={paginationMeta.total || 0}
+                />
+              )}
             </li>
           </ul>
         }
       >
         {isLoading ? (
           <TableSkeleton colSpan={headers?.length} tdStyle="!pl-2" />
-        ) : data?.length > 0 ? (
-          data?.map((item, index) => (
+        ) : filteredInventory?.length > 0 ? (
+          filteredInventory?.map((item: any, index: number) => (
             <TableRow key={index} className="border">
               <TableCell className="relative">
                 <div className="flex items-center gap-3">
-                  <Avatars
-                    src={""}
-                    fallback={item.userName}
-                    alt="profile"
-                    fallbackStyle="aStyle"
+                  <ImgBox
+                    src={item.image_path || ""}
+                    alt={item.product_name}
+                    className="size-10 rounded object-cover"
                   />
                   <div>
-                    <h1 className="text-lg">{item.userName}</h1>
+                    <h1 className="text-lg">{item.product_name}</h1>
                   </div>
                 </div>
               </TableCell>
@@ -273,20 +174,40 @@ export default function Inventory() {
                 <h1 className="ml-5">{item.quantity}</h1>
               </TableCell>
               <TableCell>
+                <h1
+                  className={`px-3 py-1 rounded text-sm font-medium w-fit ${
+                    item.stock_status === "Out of stock"
+                      ? "bg-red-100 text-red-700"
+                      : item.stock_status === "Very low"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : item.stock_status === "Medium"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  {item.stock_status}
+                </h1>
+              </TableCell>
+              <TableCell>
                 <div className="flex items-center">
                   <FavIcon name="calender_cc" />
-                  <span className="text-figma-gray ml-1">{item.dateTime}</span>
+                  <span className="text-figma-gray ml-1">
+                    {helpers.formatDate(item.updated_at)}
+                  </span>
                 </div>
               </TableCell>
 
               <TableCell>
                 <div className="flex items-center space-x-3">
                   <PreviewBtn
-                    onClick={() => setState("isPreview", true)}
+                    onClick={() => {
+                      setSelectedProduct(item);
+                      setState("isPreview", true);
+                    }}
                     className="bg-white"
                   />
                   <DeleteBtn
-                    onClick={() => handleDelete("12345")}
+                    onClick={() => handleDelete(item.id)}
                     className="bg-white"
                   />
                 </div>
@@ -296,12 +217,13 @@ export default function Inventory() {
         ) : (
           <TableNoItem
             colSpan={headers?.length}
-            title="No Order are available at the moment"
+            title="No products available"
             tdStyle="!bg-background"
           />
         )}
       </VendorTable>
-      {/*  =========== add =============== */}
+
+      {/*  =========== Add Modal =============== */}
       <Modal2
         open={state.isAdd}
         setIsOpen={(v) => setState("isAdd", v)}
@@ -315,13 +237,14 @@ export default function Inventory() {
         >
           <X />
         </div>
-        <AddNewProduct />
+        <AddNewProduct onSuccess={() => setState("isAdd", false)} />
       </Modal2>
-      {/*  =========== ProductDetails =============== */}
+
+      {/*  =========== Preview Modal =============== */}
       <Modal2
         open={state.isPreview}
         setIsOpen={(v) => setState("isPreview", v)}
-        title="Product Details"
+        title="Edit Product"
         titleStyle="text-center"
         className="sm:max-w-lg"
       >
@@ -331,37 +254,56 @@ export default function Inventory() {
         >
           <X />
         </div>
-        <ProductDetails />
+        <ProductDetails
+          product={selectedProduct}
+          onSuccess={() => setState("isPreview", false)}
+        />
       </Modal2>
     </div>
   );
 }
 
 //  =====================  AddNewProduct ===============
-function AddNewProduct() {
+function AddNewProduct({ onSuccess }: { onSuccess?: () => void }) {
   const [{ files }, { getInputProps, openFileDialog, clearFiles }] =
     useFileUpload({
       accept: "image/*",
+      maxSize: 2048 * 1024, // 2MB in bytes
+      onError: (errors) => {
+        errors.forEach((error) => toast.error(error));
+      },
     });
 
   const form = useForm({
     defaultValues: {
-      title: "",
-      quantity: "",
+      product_name: "",
+      quantity: 0,
     },
   });
 
-  const handleProfileSubmit = async (values: FieldValues) => {
-    const value = {
-      name: values.name,
-      ...(files[0]?.file && { image: files[0]?.file }),
-    };
+  const [addInventory, { isLoading }] = useAddInventoryMutation();
 
-    console.log("Submitted Data:", value);
+  const handleSubmit = async (values: FieldValues) => {
+    const formData = new FormData();
+    formData.append("product_name", values.product_name);
+    formData.append("quantity", values.quantity);
+    if (files[0]?.file instanceof File) {
+      formData.append("image", files[0].file);
+    }
+
+    try {
+      await addInventory(formData).unwrap();
+      toast.success("Product added successfully");
+      clearFiles();
+      form.reset();
+      onSuccess?.();
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to add product");
+    }
   };
 
   return (
-    <Form from={form} className="space-y-6" onSubmit={handleProfileSubmit}>
+    <Form from={form} className="space-y-6" onSubmit={handleSubmit}>
       <Label
         htmlFor="image"
         className="relative mx-auto w-full border border-dashed h-[200px] rounded-md border-primary cursor-pointer"
@@ -378,7 +320,7 @@ function AddNewProduct() {
           </ImgBox>
         ) : (
           <div className="text-center mx-auto">
-            <p className="text-blacks mb-2 text-sm">Upload Inventory Image</p>
+            <p className="text-blacks mb-2 text-sm">Upload Product Image</p>
             <p className="text-gray-400 font-medium mb-4 text-xs">Or</p>
 
             <Button onClick={openFileDialog} type="button">
@@ -396,57 +338,87 @@ function AddNewProduct() {
       </Label>
 
       <FromInput
-        label="Product title"
-        name="title"
-        placeholder="Product title goes here"
+        label="Product Name"
+        name="product_name"
+        placeholder="Product name goes here"
         className="h-11 rounded-xl bg-secondary placeholder:text-muted-foreground"
       />
       <FromInput
         label="Quantity"
         name="quantity"
-        placeholder="00"
-        className="h-11 rounded-xl bg-secondary placeholder:text-muted-foreground [&::-webkit-inner-spin-button]:appearance-auto!"
+        placeholder="0"
+        className="h-11 rounded-xl bg-secondary placeholder:text-muted-foreground"
         type="number"
       />
 
-      <Button size="lg" className="rounded-md w-full" type="submit">
-        Add
+      <Button size="lg" className="rounded-md w-full" type="submit" disabled={isLoading}>
+        {isLoading ? "Adding..." : "Add Product"}
       </Button>
     </Form>
   );
 }
 
 //  =====================  ProductDetails ===============
-function ProductDetails() {
-  const [{ files }, { getInputProps, clearFiles }] = useFileUpload({
-    accept: "image/*",
-  });
+function ProductDetails({
+  product,
+  onSuccess,
+}: {
+  product: any;
+  onSuccess?: () => void;
+}) {
+  const [{ files }, { getInputProps, openFileDialog, clearFiles }] =
+    useFileUpload({
+      accept: "image/*",
+      maxSize: 2048 * 1024, // 2MB in bytes
+      onError: (errors) => {
+        errors.forEach((error) => toast.error(error));
+      },
+    });
 
   const form = useForm({
     defaultValues: {
-      title: "Lorem ipsum dolor sit amet ",
-      quantity: "500",
+      product_name: product?.product_name || "",
+      quantity: product?.quantity || 0,
     },
   });
 
-  const handleProfileSubmit = async (values: FieldValues) => {
-    const value = {
-      name: values.name,
-      ...(files[0]?.file && { image: files[0]?.file }),
-    };
+  const [updateInventory, { isLoading }] = useUpdateInventoryMutation();
 
-    console.log("Submitted Data:", value);
+  const handleSubmit = async (values: FieldValues) => {
+    if (!product?.id) return;
+
+    const formData = new FormData();
+    formData.append("product_name", String(values.product_name || ""));
+    formData.append("quantity", String(values.quantity || 0));
+    if (files[0]?.file instanceof File) {
+      formData.append("image", files[0].file);
+    }
+
+    try {
+      await updateInventory({ id: product.id, formData }).unwrap();
+      toast.success("Product updated successfully");
+      clearFiles();
+      onSuccess?.();
+    } catch (err: any) {
+      console.error("Update error:", err);
+      toast.error(err?.data?.message || "Failed to update product");
+    }
   };
 
   return (
-    <Form from={form} className="space-y-6" onSubmit={handleProfileSubmit}>
+    <Form from={form} className="space-y-6" onSubmit={handleSubmit}>
       <Label
         htmlFor="image"
         className="relative mx-auto w-full border border-dashed h-[200px] rounded-md border-primary cursor-pointer"
       >
         <ImgBox
-          src={files[0]?.preview || PlaceholderImg() || "/blur.png"}
-          alt="img"
+          src={
+            files[0]?.preview ||
+            product?.image_path ||
+            PlaceholderImg() ||
+            "/blur.png"
+          }
+          alt={product?.product_name}
           className="w-full h-full object-cover rounded-md"
         >
           <div className="size-10 grid place-items-center absolute rounded-md bg-white/20 backdrop-blur-[20px] right-4 top-4">
@@ -463,22 +435,29 @@ function ProductDetails() {
       </Label>
 
       <FromInput
-        label="Product title"
-        name="title"
-        placeholder="Product title goes here"
+        label="Product Name"
+        name="product_name"
+        placeholder="Product name goes here"
         className="h-11 rounded-xl bg-secondary"
       />
       <FromInput
         label="Quantity"
         name="quantity"
-        placeholder="00"
-        className="h-11 rounded-xl bg-secondary [&::-webkit-inner-spin-button]:appearance-auto!"
+        placeholder="0"
+        className="h-11 rounded-xl bg-secondary"
         type="number"
       />
 
-      <Button size="lg" className="rounded-md w-full" type="submit">
-        Save Changes
-      </Button>
+      <div className="flex gap-3">
+        <Button
+          size="lg"
+          className="rounded-md flex-1"
+          type="submit"
+          disabled={isLoading}
+        >
+          {isLoading ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
     </Form>
   );
 }
