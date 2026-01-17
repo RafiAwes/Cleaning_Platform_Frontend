@@ -102,7 +102,6 @@ export default function PackageDetails() {
   };
 
   const { user } = useAppSelector((state) => state.auth);
-  const isAuthenticated = Boolean(user);
 
   if (isLoading) {
     return (
@@ -301,7 +300,7 @@ export default function PackageDetails() {
                       Subtotal: ${calculateSubtotal().toFixed(2)}
                     </span>
                     <Link
-                      href={isAuthenticated ? `/booking-schedule?packageId=${package_info.id}` : "/auth"}
+                      href={user?.role === "customer" ? "/booking-schedule" : "/auth/login"}
                     >
                       <Button className="" size="lg" icon={true}>
                         Continue

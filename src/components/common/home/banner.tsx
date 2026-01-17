@@ -36,7 +36,7 @@ const BannerSection = () => {
             <p>services in NYC, all in one place.</p>
           </div>
           <div>
-            {user.role === "customer" ? (
+            {user?.role === "customer" ? (
               <>
                 <div className="mb-10">
                   <SearchBox2 />
@@ -119,7 +119,7 @@ const BannerSection = () => {
             </p>
           </div>
           <div>
-            {user.role == "user" ? (
+            {user?.role === "customer" ? (
               <>
                 <div className="mb-10 w-[90%]">
                   <SearchBox2 />

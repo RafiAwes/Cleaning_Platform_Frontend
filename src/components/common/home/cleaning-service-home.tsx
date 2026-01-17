@@ -17,7 +17,7 @@ const CleaningServiceHome = () => {
     <div className="mt-[60px] lg:mt-[120px]">
       <div className="px-4 my-6">
         <div
-          className={`relative bg-secondary rounded-[30px] md:rounded-[58px] py-4 md:py-10 lg:py-10 px-10  md:max-w-[600px] lg:max-w-[700px] xl:max-w-[1180px] mx-auto  flex flex-col justify-center items-center h-auto  ${user.role == "user" ? " xl:h-[400px]" : "xl:h-[300px]"}`}
+          className={`relative bg-secondary rounded-[30px] md:rounded-[58px] py-4 md:py-10 lg:py-10 px-10  md:max-w-[600px] lg:max-w-[700px] xl:max-w-[1180px] mx-auto  flex flex-col justify-center items-center h-auto  ${user?.role === "customer" ? " xl:h-[400px]" : "xl:h-[300px]"}`}
         >
           <div className="space-y-6  ">
             <div className="flex flex-col lg:flex-row justify-center  md:gap-4 lg:gap-0">
@@ -32,7 +32,7 @@ const CleaningServiceHome = () => {
               services in NYC, all in one place.
             </p>
 
-            {user.role == "user" ? (
+            {user?.role === "customer" ? (
               <>
                 <div className="">
                   <SearchBox2 />

@@ -47,7 +47,13 @@ export default function Inventory() {
   const headers = ["Product", "Quantity", "Status", "Last Updated", "Action"];
 
   const inventory = data?.inventory?.data || [];
-  const paginationMeta = data?.inventory?.meta || {};
+  const paginationMeta = {
+    total: data?.inventory?.total || 0,
+    current_page: data?.inventory?.current_page || 1,
+    last_page: data?.inventory?.last_page || 1,
+    from: data?.inventory?.from || 0,
+    to: data?.inventory?.to || 0,
+  };
 
   const filteredInventory = useMemo(() => {
     let filtered = inventory;

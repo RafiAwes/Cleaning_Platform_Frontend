@@ -102,7 +102,6 @@ export default function PackageDetails() {
   };
 
   const { user } = useAppSelector((state) => state.auth);
-  const isAuthenticated = Boolean(user);
 
   if (isLoading) {
     return (
@@ -137,19 +136,16 @@ export default function PackageDetails() {
     <div className="min-h-screen bg-white pt-6">
       <div className="container px-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Left Section */}
           <div className="space-y-6 lg:col-span-5">
-            {/* Image */}
             <div className="relative h-64 xl:h-80 bg-gray-800 rounded-2xl overflow-hidden">
               <Image
                 src={package_info.image}
                 alt={package_info.title}
                 fill
-                className="object-cover rounded-[16px] transition duration-300"
+                className="object-cover rounded-2xl transition duration-300"
               />
             </div>
 
-            {/* Title */}
             <div>
               <h1 className="text-[#000000] font-bold text-[16px] xl:text-[28px]">
                 {package_info.title}
@@ -190,137 +186,102 @@ export default function PackageDetails() {
                 </div>
               </div>
 
-              <Button
-                className="bg-secondary text-black font-bold"
-                size={"lg"}
-                icon={false}
-              >
-                <MessageIcon />
-                Message
-              </Button>
-            </div>
-
-            {/* Vendor Info */}
-            <div className="bg-white rounded-2xl p-4">
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-2">
-                  About vendor
-                </h4>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {package_info.vendor.name} is a professional cleaning service
-                  provider offering quality cleaning solutions.
-                </p>
+              <div className="flex items-center gap-2">
+                <button className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                  <MessageIcon />
+                </button>
               </div>
             </div>
+
+            <p className="text-gray-600 text-sm">
+              {package_info.description}
+            </p>
           </div>
 
-          {/* Right Section */}
-          <div className="lg:col-span-7">
-            <div className="border border-gray-200 rounded-xl">
-              <h2 className="text-sm font-semibold text-gray-900 mb-3 border-b-2 p-4">
-                Package details
-              </h2>
-              <div className="px-4">
-                <div className="text-xl font-bold text-gray-900 py-4">
-                  ${package_info.price}
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 py-2">
-                    About this package
-                  </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {package_info.description}
-                  </p>
-                </div>
-
-                {package_info.services.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900 pt-6">
-                      Service included
-                    </h3>
-                    <ul className="space-y-2">
-                      {package_info.services.map((service) => (
-                        <li
-                          key={service.id}
-                          className="flex items-center gap-2 text-sm text-gray-600"
-                        >
-                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
-                          {service.title}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {addOns.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900 pt-6 pb-4">
-                      Available add-ons with this package
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {addOns.map((addon) => (
-                        <div
-                          key={addon.id}
-                          className="flex items-center justify-between p-3 bg-secondary rounded-[16px]"
-                        >
-                          <div className="flex-1">
-                            <div className="text-xs text-gray-900 mb-1 flex justify-between items-center gap-2">
-                              <span>{addon.title}</span>
-                              <span className="font-bold">${addon.price}</span>
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={() => decrementAddOn(addon.id)}
-                                  className="w-5 h-5 flex items-center justify-center text-gray-600"
-                                  disabled={addon.count === 0}
-                                >
-                                  −
-                                </button>
-                                <span className="w-5 text-center text-xs">
-                                  {addon.count}
-                                </span>
-                                <button
-                                  onClick={() => incrementAddOn(addon.id)}
-                                  className="w-5 h-5 flex items-center justify-center"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+          <div className="lg:col-span-7 space-y-6">
+            {package_info.services.length > 0 && (
+              <div className="bg-secondary p-6 rounded-2xl space-y-4">
+                <h2 className="text-[#000000] font-bold text-xl">Services</h2>
+                <div className="space-y-2">
+                  {package_info.services.map((service) => (
+                    <div key={service.id} className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-primary"></div>
+                      <span>{service.title}</span>
                     </div>
-                  </div>
-                )}
-
-                <div className="pt-4 border-t border-gray-200 my-6">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-gray-900">
-                      Subtotal: ${calculateSubtotal().toFixed(2)}
-                    </span>
-                    <Link
-                      href={isAuthenticated ? `/booking-schedule?packageId=${package_info.id}` : "/auth"}
-                    >
-                      <Button className="" size="lg" icon={true}>
-                        Continue
-                      </Button>
-                    </Link>
-                  </div>
+                  ))}
                 </div>
               </div>
+            )}
+
+            {addOns.length > 0 && (
+              <div className="bg-secondary p-6 rounded-2xl space-y-4">
+                <h2 className="text-[#000000] font-bold text-xl">Add-ons</h2>
+                <div className="space-y-3">
+                  {addOns.map((addon) => (
+                    <div key={addon.id} className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{addon.title}</p>
+                        <p className="text-sm text-gray-600">${addon.price}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => decrementAddOn(addon.id)}
+                          className="w-8 h-8 rounded-lg bg-white border border-gray-300 flex items-center justify-center"
+                        >
+                          −
+                        </button>
+                        <span className="w-8 text-center">{addon.count}</span>
+                        <button
+                          onClick={() => incrementAddOn(addon.id)}
+                          className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-secondary p-6 rounded-2xl space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Base Price:</span>
+                  <span>${package_info.price}</span>
+                </div>
+                {addOns.filter((a) => a.count > 0).length > 0 && (
+                  <div className="flex justify-between">
+                    <span>Add-ons:</span>
+                    <span>
+                      ${addOns
+                        .reduce((sum, addon) => sum + addon.price * addon.count, 0)
+                        .toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                <div className="border-t pt-2 flex justify-between font-bold">
+                  <span>Total:</span>
+                  <span>${calculateSubtotal().toFixed(2)}</span>
+                </div>
+              </div>
+
+              <Link href={user ? "/booking-schedule" : "/auth/login"}>
+                <Button className="w-full bg-primary text-white">
+                  Book Now
+                  <ArrowBlackRightIcon className="ml-2" />
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Multiple component here */}
-        <div className="mb-10">
-          <div className="mt-8">
-            <PackageDetailsVendor vendorId={package_info.vendor.id} packageId={package_info.id} />
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-5">
+            <PackageDetailsVendor />
           </div>
 
-          <div className="mt-8">
+          <div className="lg:col-span-7">
             <PackageDetailsVendorReview />
           </div>
 

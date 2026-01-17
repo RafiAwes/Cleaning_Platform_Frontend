@@ -1,59 +1,65 @@
+"use client";
+import React from "react";
 import assets from "@/assets";
 import { Button } from "@/components/ui";
 import { ArrowBlackRightIcon } from "@/icon";
 import { Star } from "lucide-react";
 import Image from "next/image";
+import { useGetRandomPackagesQuery } from "@/redux/api/servicesApi";
+import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
-interface Service {
+interface Package {
   id: number;
   title: string;
-  category: string;
-  price: number;
-  rating: number;
-  reviews: number;
+  price: string;
   image: string;
+  rating: number | null;
+  vendor: {
+    id: number;
+    name: string;
+    email: string;
+  };
 }
 
-const services: Service[] = [
-  {
-    id: 1,
-    title: "House cleaning service for residential areas in New York City.",
-    category: "Home Cleaning",
-    price: 250,
-    rating: 4.8,
-    reviews: 128,
-    image: "/assets/service1.png",
-  },
-  {
-    id: 2,
-    title: "House cleaning service for residential areas in New York City.",
-    category: "Deep Cleaning",
-    price: 250,
-    rating: 4.9,
-    reviews: 256,
-    image: "/assets/service1.png",
-  },
-  {
-    id: 3,
-    title: "House cleaning service for residential areas in New York City.",
-    category: "Carpet Care",
-    price: 250,
-    rating: 4.7,
-    reviews: 89,
-    image: "/assets/service1.png",
-  },
-  {
-    id: 4,
-    title: "House cleaning service for residential areas in New York City.",
-    category: "Carpet Care",
-    price: 250,
-    rating: 4.7,
-    reviews: 89,
-    image: "/assets/service1.png",
-  },
-];
-
 const PackageDetailsRecoded = () => {
+  const params = useParams();
+  const packageId = params.id as string;
+
+  const { data: randomPackages, isLoading } = useGetRandomPackagesQuery({
+    limit: 5,
+    excludeId: parseInt(packageId),
+  });
+
+  const packages: Package[] = randomPackages?.data || [];
+
+  if (isLoading) {
+    return (
+      <div>
+        <h1 className="text-[#000000] font-bold text-[16px] xl:text-[20px] py-4">
+          Recommended for you
+        </h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="bg-secondary rounded-[16px] overflow-hidden">
+              <Skeleton className="h-64 w-full" />
+              <div className="p-4 space-y-3">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!packages || packages.length === 0) {
+    return null;
+  }
+
   return (
     <div>
       <h1 className="text-[#000000] font-bold text-[16px] xl:text-[20px] py-4">
@@ -61,73 +67,72 @@ const PackageDetailsRecoded = () => {
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {services.map((service) => (
-          <div
-            key={service.id}
-            className="bg-secondary rounded-[16px] overflow-hidden  "
-          >
-            {/* Service Image */}
-            <div className="relative w-full h-64 bg-muted overflow-hidden">
-              <Image
-                src={assets.service1}
-                alt={"photo"}
-                fill
-                className="object-cover rounded-[16px] transition duration-300"
-              />
-            </div>
-
-            {/* Service Info */}
-            <div className="p-4">
-              {/* Category */}
-              <div className="flex justify-between">
-                <p className="max-w-[80%] ">{service.title}</p>
-                <span className="text-[#000000] font-bold text-[16px] xl:text-[20px]">
-                  ${service.price}
-                </span>
+        {packages.map((service) => (
+          <Link key={service.id} href={`/services/${service.id}`}>
+            <div className="bg-secondary rounded-[16px] overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
+              {/* Service Image */}
+              <div className="relative w-full h-64 bg-muted overflow-hidden">
+                <Image
+                  src={service.image}
+                  alt={service.title}
+                  fill
+                  className="object-cover rounded-[16px] transition duration-300 hover:scale-105"
+                />
               </div>
 
-              {/* Price */}
-              <div className="flex items-center justify-between mt-4 pt-4 ">
-                <div className="flex items-center gap-2">
-                  <div>
-                    <Image
-                      src={assets.userPhoto1}
-                      alt={"photo"}
-                      width={40}
-                      height={40}
-                      className="rounded-full w-[40px] h-[40px]"
-                    />
-                  </div>
-                  <div>
-                    <h1 className="text-[#000000]  text-[16px]">John Doe</h1>
-
-                    <div className="flex items-center gap-1">
-                      {[...Array(1)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < Math.floor(service.rating)
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      ))}
-                      {service.rating}
-                    </div>
-                  </div>
+              {/* Service Info */}
+              <div className="p-4">
+                {/* Title and Price */}
+                <div className="flex justify-between">
+                  <p className="max-w-[80%] text-sm">{service.title}</p>
+                  <span className="text-[#000000] font-bold text-[16px] xl:text-[20px]">
+                    ${service.price}
+                  </span>
                 </div>
 
-                <Button
-                  className=" bg-white text-black font-bold"
-                  size={"lg"}
-                  icon={false}
-                >
-                  Order
-                  <ArrowBlackRightIcon className="text-black" />
-                </Button>
+                {/* Vendor Info */}
+                <div className="flex items-center justify-between mt-4 pt-4">
+                  <div className="flex items-center gap-2">
+                    <div>
+                      <Image
+                        src={assets.userPhoto1}
+                        alt={service.vendor.name}
+                        width={40}
+                        height={40}
+                        className="rounded-full w-[40px] h-[40px]"
+                      />
+                    </div>
+                    <div>
+                      <h1 className="text-[#000000] text-[14px]">{service.vendor.name}</h1>
+
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-3 h-3 ${
+                              i < Math.floor(service.rating || 0)
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                        ))}
+                        <span className="text-xs">{service.rating?.toFixed(1) || "0"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    className="bg-white text-black font-bold"
+                    size={"sm"}
+                    icon={false}
+                  >
+                    Order
+                    <ArrowBlackRightIcon className="text-black w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

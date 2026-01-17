@@ -1,10 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-export default function BookingCalendar() {
-  const [selectedDate, setSelectedDate] = useState<number | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 10)); // November 2025
+type BookingCalendarProps = {
+  availableDates?: string[];
+  selectedDate?: string | null;
+  onSelect?: (date: string) => void;
+};
+
+export default function BookingCalendar({ availableDates = [], selectedDate, onSelect }: BookingCalendarProps) {
+  const parsedAvailableDates = useMemo(() => {
+    return new Set(
+      (availableDates || [])
+        .map((date) => new Date(date))
+        .filter((d) => !isNaN(d.getTime()))
+        .map((d) => d.toDateString())
+    );
+  }, [availableDates]);
+
+  const initialMonth = useMemo(() => {
+    const firstAvailable = (availableDates || []).find((d) => !isNaN(new Date(d).getTime()));
+    return firstAvailable ? new Date(firstAvailable) : new Date();
+  }, [availableDates]);
+
+  const [currentMonth, setCurrentMonth] = useState(initialMonth);
+
+  useEffect(() => {
+    setCurrentMonth(initialMonth);
+  }, [initialMonth]);
 
   const monthNames = [
     "January",
@@ -35,21 +58,20 @@ export default function BookingCalendar() {
   const { firstDay, daysInMonth } = getDaysInMonth(currentMonth);
 
   const handlePreviousMonth = () => {
-    setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
-    );
-    setSelectedDate(null);
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
   };
 
   const handleNextMonth = () => {
-    setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
-    );
-    setSelectedDate(null);
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
 
   const handleDateClick = (day: number) => {
-    setSelectedDate(day);
+    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    // If we have availability data, check if date is available
+    if (parsedAvailableDates.size > 0 && !parsedAvailableDates.has(date.toDateString())) {
+      return;
+    }
+    onSelect?.(date.toISOString());
   };
 
   const renderCalendarDays = () => {
@@ -67,8 +89,10 @@ export default function BookingCalendar() {
 
     // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      const isSelected = selectedDate === day;
-      const isInRange = day >= 15 && day <= 21;
+      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+      // Date is available if: we have no availability data (show all), OR the date is in available dates
+      const isAvailable = parsedAvailableDates.size === 0 || parsedAvailableDates.has(date.toDateString());
+      const isSelected = selectedDate ? new Date(selectedDate).toDateString() === date.toDateString() : false;
 
       days.push(
         <button
@@ -78,9 +102,10 @@ export default function BookingCalendar() {
             aspect-square border rounded-lg text-xs sm:text-sm font-medium
             transition-all duration-200 
             ${isSelected ? "bg-primary text-white " : ""}
-            ${isInRange && !isSelected ? "bg-[#ECECEC]" : ""}
-            ${!isInRange && !isSelected ? "text-gray-700" : ""}
+            ${!isSelected && isAvailable ? "bg-[#ECECEC]" : ""}
+            ${!isAvailable ? "text-gray-400 cursor-not-allowed" : "text-gray-700"}
           `}
+          disabled={!isAvailable}
         >
           {day}
         </button>
